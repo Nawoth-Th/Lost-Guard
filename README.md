@@ -1,4 +1,4 @@
-# 🛡️ Lost Guard - Lost & Found AI Platform
+# 🛡️ Lost Guard - Lost & Found App
 
 **Lost Guard** is a premium, full-stack mobile platform designed to reconnect people with their lost belongings through intelligent matching, secure verification, and real-time communication.
 
