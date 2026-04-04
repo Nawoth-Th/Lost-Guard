@@ -222,6 +222,18 @@ const getItemStatusLogs = async (req, res) => {
     }
 };
 
+// @desc    Get items reported by the logged-in user
+// @route   GET /api/items/myitems
+// @access  Private
+const getMyItems = async (req, res) => {
+    try {
+        const items = await Item.find({ user: req.user._id }).sort({ createdAt: -1 });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = { 
     getItems, 
     getItemById, 
