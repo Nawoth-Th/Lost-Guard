@@ -93,7 +93,6 @@ const styles = StyleSheet.create({
         height: 300,
         borderRadius: 150,
         backgroundColor: Theme.colors.secondary + '22',
-        filter: 'blur(80px)',
     },
     header: {
         marginBottom: Theme.spacing.xl,

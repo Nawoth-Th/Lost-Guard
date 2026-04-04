@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Camera, MapPin, Tag, ChevronLeft } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
@@ -101,11 +102,6 @@ const ReportItemScreen = ({ navigation }) => {
     );
 };
 
-// Simple SafeAreaView mock if not imported
-const SafeAreaView = ({ children, style }) => {
-    const { View } = require('react-native');
-    return <View style={[{ flex: 1, paddingTop: 40 }, style]}>{children}</View>;
-};
 
 const styles = StyleSheet.create({
     container: {

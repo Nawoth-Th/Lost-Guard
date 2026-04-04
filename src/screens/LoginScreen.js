@@ -83,7 +83,6 @@ const styles = StyleSheet.create({
         height: 300,
         borderRadius: 150,
         backgroundColor: Theme.colors.primary + '22',
-        filter: 'blur(80px)',
     },
     bottomGlow: {
         position: 'absolute',
@@ -93,7 +92,6 @@ const styles = StyleSheet.create({
         height: 250,
         borderRadius: 125,
         backgroundColor: Theme.colors.accent + '11',
-        filter: 'blur(60px)',
     },
     header: {
         marginBottom: Theme.spacing.xl,
