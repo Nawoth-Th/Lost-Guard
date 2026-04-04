@@ -44,8 +44,8 @@ const LoginScreen = ({ navigation }) => {
             <View style={styles.bottomGlow} />
 
             <View style={styles.header}>
-                <Text style={styles.title}>Welcome Back</Text>
-                <Text style={styles.subtitle}>Sign in to continue</Text>
+                <Text style={styles.title}>Lost Guard</Text>
+                <Text style={styles.subtitle}>Welcome back, sign in to continue</Text>
             </View>
 
             <GlassCard style={styles.card}>

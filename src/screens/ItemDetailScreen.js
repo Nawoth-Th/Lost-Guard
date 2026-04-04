@@ -2,19 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert, Image, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2 } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2, History } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
 const ItemDetailScreen = ({ route, navigation }) => {
     const { id } = route.params;
+    const { userInfo } = useAuth();
     const [item, setItem] = useState(null);
     const [matches, setMatches] = useState([]);
+    const [statusLogs, setStatusLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [matchesLoading, setMatchesLoading] = useState(true);
+    const [logsLoading, setLogsLoading] = useState(false);
 
     const fetchItemDetails = async () => {
         try {
@@ -41,9 +45,33 @@ const ItemDetailScreen = ({ route, navigation }) => {
         }
     };
 
+    const fetchStatusLogs = async () => {
+        // Only fetch if reporter or admin
+        const isReporter = item && userInfo && item.user?._id === userInfo._id;
+        const isAdmin = userInfo && userInfo.isAdmin;
+
+        if (!isReporter && !isAdmin) return;
+
+        setLogsLoading(true);
+        try {
+            const { data } = await api.get(`/items/${id}/logs`);
+            setStatusLogs(data);
+        } catch (error) {
+            console.error('Fetch Logs Error:', error.message);
+        } finally {
+            setLogsLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchItemDetails();
     }, [id]);
+
+    useEffect(() => {
+        if (item) {
+            fetchStatusLogs();
+        }
+    }, [item]);
 
     const handleShare = async () => {
         if (!item) return;
@@ -159,6 +187,42 @@ const ItemDetailScreen = ({ route, navigation }) => {
                             <Text style={styles.reporterName}>{item.user?.name || 'Anonymous'}</Text>
                         </View>
                     </GlassCard>
+
+                    {(userInfo?.isAdmin || item.user?._id === userInfo?._id) && (
+                        <View style={styles.logsSection}>
+                            <View style={styles.sectionHeader}>
+                                <History size={20} color={Theme.colors.primary} style={{ marginRight: 8 }} />
+                                <Text style={styles.sectionTitle}>Status Timeline</Text>
+                            </View>
+                            
+                            {statusLogs.length > 0 ? (
+                                <View style={styles.timelineContainer}>
+                                    {statusLogs.map((log, index) => (
+                                        <View key={log._id} style={styles.timelineItem}>
+                                            <View style={styles.timelineLineContainer}>
+                                                <View style={[styles.timelineDot, { backgroundColor: index === 0 ? Theme.colors.primary : Theme.colors.textMuted }]} />
+                                                {index !== statusLogs.length - 1 && <View style={styles.timelineLine} />}
+                                            </View>
+                                            <View style={styles.timelineContent}>
+                                                <Text style={styles.logStatus}>{log.status}</Text>
+                                                <Text style={styles.logRemarks}>{log.remarks}</Text>
+                                                <Text style={styles.logDate}>
+                                                    {new Date(log.createdAt).toLocaleString(undefined, { 
+                                                        month: 'short', 
+                                                        day: 'numeric', 
+                                                        hour: '2-digit', 
+                                                        minute: '2-digit' 
+                                                    })}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            ) : (
+                                <Text style={styles.emptyLogsText}>No history recorded yet.</Text>
+                            )}
+                        </View>
+                    )}
 
                     {matches.length > 0 && (
                         <View style={styles.matchesSection}>
@@ -420,6 +484,67 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: Theme.fontSizes.m,
+    },
+    logsSection: {
+        marginBottom: Theme.spacing.xl,
+        paddingHorizontal: 4,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    timelineContainer: {
+        paddingLeft: 8,
+    },
+    timelineItem: {
+        flexDirection: 'row',
+        minHeight: 70,
+    },
+    timelineLineContainer: {
+        width: 20,
+        alignItems: 'center',
+    },
+    timelineDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        marginTop: 6,
+        zIndex: 1,
+    },
+    timelineLine: {
+        width: 2,
+        flex: 1,
+        backgroundColor: Theme.colors.glassBorder,
+        marginVertical: -4,
+    },
+    timelineContent: {
+        flex: 1,
+        paddingLeft: 12,
+        paddingBottom: 20,
+    },
+    logStatus: {
+        color: Theme.colors.text,
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    logRemarks: {
+        color: Theme.colors.textMuted,
+        fontSize: 13,
+        marginTop: 2,
+    },
+    logDate: {
+        color: Theme.colors.textMuted,
+        fontSize: 11,
+        marginTop: 4,
+        opacity: 0.7,
+    },
+    emptyLogsText: {
+        color: Theme.colors.textMuted,
+        fontSize: 14,
+        fontStyle: 'italic',
+        textAlign: 'center',
+        marginTop: 10,
     },
 });
 

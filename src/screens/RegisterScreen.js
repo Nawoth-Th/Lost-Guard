@@ -51,8 +51,8 @@ const RegisterScreen = ({ navigation }) => {
             <View style={styles.bottomGlow} />
 
             <View style={styles.header}>
-                <Text style={styles.title}>Create Account</Text>
-                <Text style={styles.subtitle}>Join the community today</Text>
+                <Text style={styles.title}>Lost Guard</Text>
+                <Text style={styles.subtitle}>Create an account to join the community</Text>
             </View>
 
             <GlassCard style={styles.card}>

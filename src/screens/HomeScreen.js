@@ -97,7 +97,7 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.header}>
                 <View>
                     <Text style={styles.greeting}>Hey {userInfo?.name || 'there'}!</Text>
-                    <Text style={styles.headerTitle}>Lost & Found</Text>
+                    <Text style={styles.headerTitle}>Lost Guard</Text>
                 </View>
                 <View style={styles.headerActions}>
                     <TouchableOpacity 
