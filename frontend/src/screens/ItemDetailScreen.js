@@ -167,7 +167,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                         <Text style={styles.category}>{item.category}</Text>
                         <Text style={styles.title}>{item.title}</Text>
                         
-                        <div className="flex flex-row gap-4">
+                        <View style={{ flexDirection: 'row', gap: 16 }}>
                             <View style={styles.infoItem}>
                                 <MapPin size={16} color={Theme.colors.primary} />
                                 <Text style={styles.infoText}>{item.location}</Text>
@@ -176,7 +176,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                                 <Clock size={16} color={Theme.colors.primary} />
                                 <Text style={styles.infoText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
                             </View>
-                        </div>
+                        </View>
                     </View>
 
                     <GlassCard style={styles.descriptionCard}>
