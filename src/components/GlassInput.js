@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     },
     input: {
         color: Theme.colors.text,
-        fontSize: Theme.colors.m,
+        fontSize: Theme.fontSizes.m,
         height: 48,
     },
 });
