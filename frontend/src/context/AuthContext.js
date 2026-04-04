@@ -46,6 +46,20 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const updateProfile = async (profileData) => {
+        try {
+            const { data } = await api.put('/users/profile', profileData);
+            setUserInfo(data);
+            setUserToken(data.token);
+            await SecureStore.setItemAsync('userToken', data.token);
+            await SecureStore.setItemAsync('userInfo', JSON.stringify(data));
+            return data;
+        } catch (error) {
+            console.error('Update Profile Error:', error.response?.data?.message || error.message);
+            throw error;
+        }
+    };
+
     const isLoggedIn = async () => {
         try {
             setIsLoading(true);
@@ -68,7 +82,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ login, register, logout, isLoading, userToken, userInfo }}>
+        <AuthContext.Provider value={{ login, register, logout, updateProfile, isLoading, userToken, userInfo }}>
             {children}
         </AuthContext.Provider>
     );

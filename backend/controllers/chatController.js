@@ -35,12 +35,13 @@ const sendMessage = async (req, res) => {
                 email: recipientUser.email,
                 subject: `New message for "${targetItem.title}" 💬`,
                 message: templates.newMessage(req.user.name, targetItem.title),
-            });
+            }).catch(err => console.error('Chat email error:', err.message));
         }
 
         res.status(201).json(createdMessage);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Send Message Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -57,7 +58,8 @@ const getMessages = async (req, res) => {
 
         res.json(messages);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Get Messages Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 

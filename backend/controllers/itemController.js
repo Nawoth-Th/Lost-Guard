@@ -76,34 +76,46 @@ const createItem = async (req, res) => {
             remarks: `Item ${type} reported`
         });
 
-        // 🔍 Automated Matching Alerts (Member 1 logic)
-        const matchType = type === 'Lost' ? 'Found' : 'Lost';
-        const titleWords = title.split(' ').filter(word => word.length > 2);
-        const titleRegex = titleWords.length > 0 ? new RegExp(titleWords.join('|'), 'i') : title;
+        // 🔍 Automated Matching Alerts (non-blocking)
+        try {
+            const matchType = type === 'Lost' ? 'Found' : 'Lost';
+            const titleWords = title.split(' ').filter(word => word.length > 2);
+            const titleRegex = titleWords.length > 0 ? new RegExp(titleWords.join('|'), 'i') : null;
 
-        const matches = await Item.find({
-            _id: { $ne: createdItem._id },
-            type: matchType,
-            status: 'Pending',
-            $or: [
-                { category: category },
-                { title: { $regex: titleRegex } }
-            ]
-        }).limit(3).populate('user');
+            const matchQuery = {
+                _id: { $ne: createdItem._id },
+                type: matchType,
+                status: 'Pending',
+            };
 
-        matches.forEach(match => {
-            if (match.user && match.user.email && match.user._id.toString() !== req.user._id.toString()) {
-                sendEmail({
-                    email: match.user.email,
-                    subject: `Match Alert: Potential ${matchType} for "${match.title}" ✨`,
-                    message: templates.itemMatch(match.title, match.type),
-                });
+            if (titleRegex) {
+                matchQuery.$or = [
+                    { category: category },
+                    { title: { $regex: titleRegex } }
+                ];
+            } else {
+                matchQuery.category = category;
             }
-        });
+
+            const matches = await Item.find(matchQuery).limit(3).populate('user');
+
+            matches.forEach(match => {
+                if (match.user && match.user.email && match.user._id.toString() !== req.user._id.toString()) {
+                    sendEmail({
+                        email: match.user.email,
+                        subject: `Match Alert: Potential ${matchType} for "${match.title}" ✨`,
+                        message: templates.itemMatch(match.title, match.type),
+                    }).catch(err => console.error('Match email error:', err.message));
+                }
+            });
+        } catch (matchErr) {
+            console.error('Match logic error (non-fatal):', matchErr.message);
+        }
 
         res.status(201).json(createdItem);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Create Item Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -137,7 +149,8 @@ const updateItemStatus = async (req, res) => {
             res.status(404).json({ message: 'Item not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Update Status Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -159,7 +172,8 @@ const deleteItem = async (req, res) => {
             res.status(404).json({ message: 'Item not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Delete Item Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -179,20 +193,28 @@ const getMatchingItems = async (req, res) => {
         // Simple matching logic: find items of opposite type with same category
         // and whose title sounds similar (contains any of the words)
         const titleWords = item.title.split(' ').filter(word => word.length > 2);
-        const titleRegex = titleWords.length > 0 ? new RegExp(titleWords.join('|'), 'i') : item.title;
+        const titleRegex = titleWords.length > 0 ? new RegExp(titleWords.join('|'), 'i') : null;
 
-        const matches = await Item.find({
+        const matchQuery = {
             _id: { $ne: item._id },
             type: matchType,
-            $or: [
+        };
+
+        if (titleRegex) {
+            matchQuery.$or = [
                 { category: item.category },
                 { title: { $regex: titleRegex } }
-            ]
-        }).limit(5);
+            ];
+        } else {
+            matchQuery.category = item.category;
+        }
+
+        const matches = await Item.find(matchQuery).limit(5);
 
         res.json(matches);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Match Items Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 

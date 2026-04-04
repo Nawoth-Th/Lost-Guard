@@ -38,12 +38,13 @@ const submitClaim = async (req, res) => {
                 email: finder.email,
                 subject: `New Claim for "${item.title}" 🔍`,
                 message: templates.newClaim(item.title, req.user.name),
-            });
+            }).catch(err => console.error('Claim email error:', err.message));
         }
 
         res.status(201).json(createdClaim);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Submit Claim Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -77,7 +78,8 @@ const getClaims = async (req, res) => {
 
         res.json(claims);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Get Claims Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -116,12 +118,13 @@ const updateClaimStatus = async (req, res) => {
                 email: claimant.email,
                 subject: `Claim Decision: ${status} for "${claim.item.title}"`,
                 message: templates.claimUpdate(claim.item.title, status, req.body.remarks),
-            });
+            }).catch(err => console.error('Claim update email error:', err.message));
         }
 
         res.json(claim);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Update Claim Error:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
