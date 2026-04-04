@@ -4,6 +4,8 @@ import * as SecureStore from 'expo-secure-store';
 // Uses EXPO_PUBLIC_ prefix to be automatically loaded in Expo SDK 49+
 // This is defined in your .env file
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
+console.log('🔗 Connecting to Backend at:', API_URL);
+console.log('🔗 Connecting to Backend at:', API_URL);
 
 const api = axios.create({
     baseURL: API_URL,
