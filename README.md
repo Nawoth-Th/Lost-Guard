@@ -113,4 +113,4 @@
 ---
 
 ## 📄 License
-Final Year / Comprehensive Module Submission. Developed with a focus on AI-driven recovery and secure communication.
+2nd Year WMT Module Submission. Creative Commons Zero v1.0 Universal.
