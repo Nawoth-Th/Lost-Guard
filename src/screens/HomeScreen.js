@@ -1,30 +1,50 @@
-import React, { useState, useContext } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Plus, MapPin, Clock, LogOut } from 'lucide-react-native';
+import { Search, Plus, MapPin, Clock, MessageCircle, User } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
-
-const SAMPLE_ITEMS = [
-    { id: '1', title: 'iPhone 15 Pro', category: 'Electronics', location: 'Central Park', date: '2h ago', type: 'Lost' },
-    { id: '2', title: 'Golden Retriever', category: 'Pets', location: 'Brooklyn', date: '5h ago', type: 'Found' },
-    { id: '3', title: 'Leather Wallet', category: 'Accessories', location: 'Subway Station', date: '1d ago', type: 'Lost' },
-];
+import api from '../api/api';
 
 const HomeScreen = ({ navigation }) => {
     const { logout, userInfo } = useContext(AuthContext);
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('All Items');
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearch, setShowSearch] = useState(false);
 
-    const filteredItems = SAMPLE_ITEMS.filter(item => {
-        const matchesTab = activeTab === 'All Items' || item.type === activeTab;
-        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                             item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                             item.location.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesTab && matchesSearch;
+    const fetchItems = async (keyword = '') => {
+        try {
+            const { data } = await api.get(`/items${keyword ? `?keyword=${keyword}` : ''}`);
+            setItems(data);
+        } catch (error) {
+            console.error('Fetch Items Error:', error.response?.data?.message || error.message);
+            Alert.alert('Error', 'Could not fetch items.');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchItems(searchQuery);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery]);
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchItems(searchQuery);
+    }, [searchQuery]);
+
+    const filteredItems = items.filter(item => {
+        return activeTab === 'All Items' || item.type === activeTab;
     });
 
     const handleLogout = () => {
@@ -41,7 +61,7 @@ const HomeScreen = ({ navigation }) => {
     const renderItem = ({ item }) => (
         <TouchableOpacity 
             style={styles.itemWrapper}
-            onPress={() => navigation.navigate('ItemDetail', { id: item.id })}
+            onPress={() => navigation.navigate('ItemDetail', { id: item._id })}
         >
             <GlassCard style={styles.itemCard}>
                 <View style={styles.cardHeader}>
@@ -60,7 +80,7 @@ const HomeScreen = ({ navigation }) => {
                     </View>
                     <View style={styles.footerInfo}>
                         <Clock size={14} color={Theme.colors.textMuted} />
-                        <Text style={styles.footerText}>{item.date}</Text>
+                        <Text style={styles.footerText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
                     </View>
                 </View>
             </GlassCard>
@@ -81,6 +101,12 @@ const HomeScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.headerActions}>
                     <TouchableOpacity 
+                        style={styles.actionButton}
+                        onPress={() => navigation.navigate('Inbox')}
+                    >
+                        <MessageCircle color={Theme.colors.text} size={22} />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
                         style={[styles.actionButton, showSearch && styles.actionButtonActive]}
                         onPress={() => setShowSearch(!showSearch)}
                     >
@@ -88,9 +114,9 @@ const HomeScreen = ({ navigation }) => {
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={styles.actionButton}
-                        onPress={handleLogout}
+                        onPress={() => navigation.navigate('Profile')}
                     >
-                        <LogOut color="#ef4444" size={22} />
+                        <User color={Theme.colors.text} size={22} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -122,18 +148,27 @@ const HomeScreen = ({ navigation }) => {
                 ))}
             </View>
 
-            <FlatList
-                data={filteredItems}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No items found matching your filters</Text>
-                    </View>
-                }
-            />
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={Theme.colors.primary} />
+                </View>
+            ) : (
+                <FlatList
+                    data={filteredItems}
+                    renderItem={renderItem}
+                    keyExtractor={item => item._id}
+                    contentContainerStyle={styles.listContent}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.primary} />
+                    }
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>No items found matching your filters</Text>
+                        </View>
+                    }
+                />
+            )}
 
             <TouchableOpacity 
                 style={styles.fab}
@@ -261,8 +296,7 @@ const styles = StyleSheet.create({
         marginBottom: Theme.spacing.s,
     },
     cardFooter: {
-        flexDirection: 'row',
-        gap: 16,
+        flexDirection: 'row', gap: 16,
     },
     footerInfo: {
         flexDirection: 'row',
@@ -280,6 +314,11 @@ const styles = StyleSheet.create({
     emptyText: {
         color: Theme.colors.textMuted,
         fontSize: 16,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     fab: {
         position: 'absolute',

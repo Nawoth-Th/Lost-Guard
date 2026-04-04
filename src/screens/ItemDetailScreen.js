@@ -1,76 +1,104 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert, Image, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, MapPin, Clock, Share2, MessageCircle } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2 } from 'lucide-native-react';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
+import api from '../api/api';
 
 const { width } = Dimensions.get('window');
 
 const ItemDetailScreen = ({ route, navigation }) => {
-    // In a real app, you'd fetch this by ID. For now, we'll use dummy data or generic info.
-    const { id } = route.params || { id: 'unknown' };
-    
-    // Dummy item data for demonstration
-    const getItemData = (id) => {
-        const items = {
-            '1': {
-                title: 'iPhone 15 Pro',
-                category: 'Electronics',
-                location: 'Central Park, NY',
-                date: '2h ago',
-                description: 'Lost a blue iPhone 15 Pro near the Bethesda Terrace. It has a clear case and a small scratch on the bottom left corner.',
-                type: 'Lost',
-            },
-            '2': {
-                title: 'Golden Retriever',
-                category: 'Pets',
-                location: 'Brooklyn, NY',
-                date: '5h ago',
-                description: 'Found a friendly Golden Retriever near Prospect Park. No collar, seems well-trained.',
-                type: 'Found',
-            },
-            '3': {
-                title: 'Leather Wallet',
-                category: 'Accessories',
-                location: 'Subway Station',
-                date: '1d ago',
-                description: 'Lost a black leather wallet at the 42nd St - Port Authority station. Contains ID and several cards.',
-                type: 'Lost',
-            }
-        };
-        return items[id] || items['1'];
+    const { id } = route.params;
+    const [item, setItem] = useState(null);
+    const [matches, setMatches] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [matchesLoading, setMatchesLoading] = useState(true);
+
+    const fetchItemDetails = async () => {
+        try {
+            const { data } = await api.get(`/items/${id}`);
+            setItem(data);
+            fetchMatches();
+        } catch (error) {
+            console.error('Fetch Item Error:', error.response?.data?.message || error.message);
+            Alert.alert('Error', 'Could not load item details.');
+            navigation.goBack();
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const item = getItemData(id);
+    const fetchMatches = async () => {
+        try {
+            const { data } = await api.get(`/items/${id}/matches`);
+            setMatches(data);
+        } catch (error) {
+            console.error('Fetch Matches Error:', error.message);
+        } finally {
+            setMatchesLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchItemDetails();
+    }, [id]);
 
     const handleShare = async () => {
+        if (!item) return;
         try {
-            const result = await Share.share({
+            await Share.share({
                 message: `${item.type} Item: ${item.title}\nLocation: ${item.location}\nDescription: ${item.description}\n\nShared via Lost & Found App`,
             });
-            if (result.action === Share.sharedAction) {
-                if (result.activityType) {
-                    // shared with activity type of result.activityType
-                } else {
-                    // shared
-                }
-            } else if (result.action === Share.dismissedAction) {
-                // dismissed
-            }
         } catch (error) {
             Alert.alert('Error', error.message);
         }
     };
 
     const handleContact = () => {
-        Alert.alert(
-            "Contact Owner",
-            "This will open a chat with the reporter once the messaging system is fully integrated.",
-            [{ text: "OK", onPress: () => console.log("OK Pressed") }]
-        );
+        navigation.navigate('Chat', { 
+            item: item, 
+            recipient: item.user 
+        });
     };
+
+    const handleClaim = () => {
+        navigation.navigate('Claim', { item: item });
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <LinearGradient
+                    colors={[Theme.colors.background, '#1e1b4b']}
+                    style={StyleSheet.absoluteFill}
+                />
+                <ActivityIndicator size="large" color={Theme.colors.primary} />
+            </View>
+        );
+    }
+
+    if (!item) return null;
+
+    const serverUrl = api.defaults.baseURL.replace('/api', '');
+    const imageUrl = item.image ? `${serverUrl}${item.image}` : null;
+
+    const renderMatch = ({ item: match }) => (
+        <TouchableOpacity 
+            style={styles.matchCard}
+            onPress={() => navigation.push('ItemDetail', { id: match._id })}
+        >
+            <Image 
+                source={match.image ? { uri: `${serverUrl}${match.image}` } : null} 
+                style={styles.matchImage}
+            />
+            <View style={styles.matchInfo}>
+                <Text style={styles.matchTitle} numberOfLines={1}>{match.title}</Text>
+                <Text style={styles.matchCategory}>{match.category}</Text>
+            </View>
+        </TouchableOpacity>
+    );
 
     return (
         <View style={styles.container}>
@@ -80,7 +108,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
                         <ChevronLeft color={Theme.colors.text} size={24} />
@@ -92,54 +119,97 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                    {/* Image Placeholder */}
                     <View style={styles.imageContainer}>
-                        <LinearGradient
-                            colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']}
-                            style={styles.imagePlaceholder}
-                        >
-                            <Text style={styles.imagePlaceholderText}>Image Preview</Text>
-                        </LinearGradient>
+                        {imageUrl ? (
+                            <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+                        ) : (
+                            <LinearGradient
+                                colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']}
+                                style={styles.imagePlaceholder}
+                            >
+                                <Text style={styles.imagePlaceholderText}>No Image Available</Text>
+                            </LinearGradient>
+                        )}
                         <View style={[styles.typeBadge, { backgroundColor: item.type === 'Lost' ? '#ef4444' : '#10b981' }]}>
                             <Text style={styles.typeBadgeText}>{item.type}</Text>
                         </View>
                     </View>
 
-                    {/* Main Info */}
                     <View style={styles.mainInfo}>
                         <Text style={styles.category}>{item.category}</Text>
                         <Text style={styles.title}>{item.title}</Text>
                         
-                        <View style={styles.infoRow}>
+                        <div className="flex flex-row gap-4">
                             <View style={styles.infoItem}>
                                 <MapPin size={16} color={Theme.colors.primary} />
                                 <Text style={styles.infoText}>{item.location}</Text>
                             </View>
                             <View style={styles.infoItem}>
                                 <Clock size={16} color={Theme.colors.primary} />
-                                <Text style={styles.infoText}>{item.date}</Text>
+                                <Text style={styles.infoText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
                             </View>
-                        </View>
+                        </div>
                     </View>
 
-                    {/* Description */}
                     <GlassCard style={styles.descriptionCard}>
                         <Text style={styles.sectionTitle}>Description</Text>
                         <Text style={styles.descriptionText}>{item.description}</Text>
+                        <View style={styles.reporterInfo}>
+                            <Text style={styles.reporterLabel}>Reported by:</Text>
+                            <Text style={styles.reporterName}>{item.user?.name || 'Anonymous'}</Text>
+                        </View>
                     </GlassCard>
 
-                    {/* Contact Button */}
-                    <TouchableOpacity style={styles.contactButton} onPress={handleContact}>
-                        <LinearGradient
-                            colors={[Theme.colors.primary, Theme.colors.accent]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.contactGradient}
-                        >
-                            <MessageCircle color="#fff" size={20} style={{ marginRight: 8 }} />
-                            <Text style={styles.contactText}>Contact Owner</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
+                    {matches.length > 0 && (
+                        <View style={styles.matchesSection}>
+                            <Text style={styles.sectionTitle}>Suggested Matches</Text>
+                            <FlatList
+                                data={matches}
+                                renderItem={renderMatch}
+                                keyExtractor={match => match._id}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.matchesList}
+                            />
+                        </View>
+                    )}
+
+                    <View style={styles.statusRow}>
+                        <Text style={styles.statusLabel}>Status:</Text>
+                        <View style={[styles.statusBadge, { borderColor: item.status === 'Recovered' ? '#10b981' : Theme.colors.primary }]}>
+                            <Text style={[styles.statusText, { color: item.status === 'Recovered' ? '#10b981' : Theme.colors.primary }]}>
+                                {item.status}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.actions}>
+                        {item.type === 'Found' && item.status !== 'Recovered' && (
+                            <TouchableOpacity style={[styles.actionButtonMain, { marginBottom: 12 }]} onPress={handleClaim}>
+                                <LinearGradient
+                                    colors={[Theme.colors.primary, Theme.colors.accent]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.actionGradient}
+                                >
+                                    <CheckCircle2 color="#fff" size={20} style={{ marginRight: 8 }} />
+                                    <Text style={styles.actionText}>Claim This Item</Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        )}
+                        
+                        <TouchableOpacity style={styles.actionButtonMain} onPress={handleContact}>
+                            <LinearGradient
+                                colors={['#334155', '#1e293b']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={styles.actionGradient}
+                            >
+                                <MessageCircle color="#fff" size={20} style={{ marginRight: 8 }} />
+                                <Text style={styles.actionText}>Contact Reporter</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
                 </ScrollView>
             </SafeAreaView>
         </View>
@@ -149,6 +219,11 @@ const ItemDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     header: {
         flexDirection: 'row',
@@ -184,6 +259,11 @@ const styles = StyleSheet.create({
         marginBottom: Theme.spacing.l,
         borderWidth: 1,
         borderColor: Theme.colors.glassBorder,
+        backgroundColor: 'rgba(255,255,255,0.02)',
+    },
+    image: {
+        width: '100%',
+        height: '100%',
     },
     imagePlaceholder: {
         flex: 1,
@@ -225,14 +305,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 12,
     },
-    infoRow: {
-        flexDirection: 'row',
-        gap: 16,
-    },
     infoItem: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
+        marginRight: 16,
     },
     infoText: {
         color: Theme.colors.textMuted,
@@ -240,31 +317,106 @@ const styles = StyleSheet.create({
     },
     descriptionCard: {
         padding: Theme.spacing.l,
-        marginBottom: Theme.spacing.xl,
+        marginBottom: Theme.spacing.l,
     },
     sectionTitle: {
         color: Theme.colors.text,
         fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: 8,
+        marginBottom: 12,
     },
     descriptionText: {
         color: Theme.colors.textMuted,
         lineHeight: 22,
         fontSize: 15,
+        marginBottom: Theme.spacing.m,
     },
-    contactButton: {
+    reporterInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderTopWidth: 0.5,
+        borderTopColor: Theme.colors.glassBorder,
+        paddingTop: Theme.spacing.m,
+        gap: 8,
+    },
+    reporterLabel: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
+    },
+    reporterName: {
+        color: Theme.colors.text,
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    matchesSection: {
+        marginBottom: Theme.spacing.xl,
+    },
+    matchesList: {
+        gap: 12,
+    },
+    matchCard: {
+        width: 140,
+        backgroundColor: Theme.colors.glass,
+        borderRadius: 12,
+        overflow: 'hidden',
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+    },
+    matchImage: {
+        width: '100%',
+        height: 80,
+        backgroundColor: 'rgba(255,255,255,0.02)',
+    },
+    matchInfo: {
+        padding: 8,
+    },
+    matchTitle: {
+        color: Theme.colors.text,
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    matchCategory: {
+        color: Theme.colors.textMuted,
+        fontSize: 10,
+    },
+    statusRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        gap: 12,
+        marginBottom: Theme.spacing.xl,
+        paddingHorizontal: 4,
+    },
+    statusLabel: {
+        color: Theme.colors.textMuted,
+        fontSize: 14,
+    },
+    statusBadge: {
+        borderWidth: 1,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 20,
+    },
+    statusText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+    },
+    actions: {
+        marginBottom: 20,
+    },
+    actionButtonMain: {
         borderRadius: Theme.spacing.s,
         overflow: 'hidden',
-        elevation: 8,
+        elevation: 4,
     },
-    contactGradient: {
+    actionGradient: {
         paddingVertical: Theme.spacing.m,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    contactText: {
+    actionText: {
         color: '#fff',
         fontWeight: 'bold',
         fontSize: Theme.fontSizes.m,
