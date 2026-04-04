@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert, Image, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,13 +6,14 @@ import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2, Histor
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
-import { useAuth } from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageHelper';
 
 const { width } = Dimensions.get('window');
 
 const ItemDetailScreen = ({ route, navigation }) => {
     const { id } = route.params;
-    const { userInfo } = useAuth();
+    const { userInfo } = useContext(AuthContext);
     const [item, setItem] = useState(null);
     const [matches, setMatches] = useState([]);
     const [statusLogs, setStatusLogs] = useState([]);
@@ -109,8 +110,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
     if (!item) return null;
 
-    const serverUrl = api.defaults.baseURL.replace('/api', '');
-    const imageUrl = item.image ? `${serverUrl}${item.image}` : null;
+    const imageUrl = getImageUrl(item.image);
 
     const renderMatch = ({ item: match }) => (
         <TouchableOpacity 
@@ -118,7 +118,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             onPress={() => navigation.push('ItemDetail', { id: match._id })}
         >
             <Image 
-                source={match.image ? { uri: `${serverUrl}${match.image}` } : null} 
+            source={match.image ? { uri: getImageUrl(match.image) } : null} 
                 style={styles.matchImage}
             />
             <View style={styles.matchInfo}>

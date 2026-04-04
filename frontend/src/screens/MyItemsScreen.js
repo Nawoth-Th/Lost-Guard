@@ -6,6 +6,7 @@ import { ChevronLeft, Trash2, MapPin, Clock, Package } from 'lucide-react-native
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { getImageUrl } from '../utils/imageHelper';
 
 const MyItemsScreen = ({ navigation }) => {
     const [items, setItems] = useState([]);
@@ -57,8 +58,7 @@ const MyItemsScreen = ({ navigation }) => {
     };
 
     const renderItem = ({ item }) => {
-        const serverUrl = api.defaults.baseURL.replace('/api', '');
-        const imageUrl = item.image ? `${serverUrl}${item.image}` : null;
+        const imageUrl = getImageUrl(item.image);
 
         return (
             <TouchableOpacity 
