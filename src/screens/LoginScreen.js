@@ -1,17 +1,33 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
+import { AuthContext } from '../context/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    
+    const { login } = useContext(AuthContext);
 
-    const handleLogin = () => {
-        // Implement backend login
-        navigation.navigate('Home');
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert('Error', 'Please fill in all fields');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await login(email, password);
+            // AuthContext update handles screen navigation
+        } catch (error) {
+            Alert.alert('Login Failed', error.response?.data?.message || 'Something went wrong');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -47,14 +63,22 @@ const LoginScreen = ({ navigation }) => {
                     secureTextEntry
                 />
 
-                <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                <TouchableOpacity 
+                    style={styles.button} 
+                    onPress={handleLogin}
+                    disabled={loading}
+                >
                     <LinearGradient
                         colors={[Theme.colors.primary, Theme.colors.accent]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.buttonGradient}
                     >
-                        <Text style={styles.buttonText}>Sign In</Text>
+                        {loading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <Text style={styles.buttonText}>Sign In</Text>
+                        )}
                     </LinearGradient>
                 </TouchableOpacity>
 
@@ -119,6 +143,8 @@ const styles = StyleSheet.create({
     buttonGradient: {
         paddingVertical: Theme.spacing.m,
         alignItems: 'center',
+        minHeight: 50,
+        justifyContent: 'center',
     },
     buttonText: {
         color: Theme.colors.text,

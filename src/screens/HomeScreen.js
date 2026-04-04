@@ -1,9 +1,11 @@
-import React from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Plus, MapPin, Clock } from 'lucide-react-native';
+import { Search, Plus, MapPin, Clock, LogOut } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
+import { AuthContext } from '../context/AuthContext';
 
 const SAMPLE_ITEMS = [
     { id: '1', title: 'iPhone 15 Pro', category: 'Electronics', location: 'Central Park', date: '2h ago', type: 'Lost' },
@@ -12,6 +14,30 @@ const SAMPLE_ITEMS = [
 ];
 
 const HomeScreen = ({ navigation }) => {
+    const { logout, userInfo } = useContext(AuthContext);
+    const [activeTab, setActiveTab] = useState('All Items');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearch, setShowSearch] = useState(false);
+
+    const filteredItems = SAMPLE_ITEMS.filter(item => {
+        const matchesTab = activeTab === 'All Items' || item.type === activeTab;
+        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                             item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             item.location.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesTab && matchesSearch;
+    });
+
+    const handleLogout = () => {
+        Alert.alert(
+            "Logout",
+            "Are you sure you want to log out?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Logout", onPress: logout, style: "destructive" }
+            ]
+        );
+    };
+
     const renderItem = ({ item }) => (
         <TouchableOpacity 
             style={styles.itemWrapper}
@@ -50,32 +76,63 @@ const HomeScreen = ({ navigation }) => {
 
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.greeting}>Hey there!</Text>
+                    <Text style={styles.greeting}>Hey {userInfo?.name || 'there'}!</Text>
                     <Text style={styles.headerTitle}>Lost & Found</Text>
                 </View>
-                <TouchableOpacity style={styles.searchButton}>
-                    <Search color={Theme.colors.text} size={24} />
-                </TouchableOpacity>
+                <View style={styles.headerActions}>
+                    <TouchableOpacity 
+                        style={[styles.actionButton, showSearch && styles.actionButtonActive]}
+                        onPress={() => setShowSearch(!showSearch)}
+                    >
+                        <Search color={showSearch ? Theme.colors.primary : Theme.colors.text} size={22} />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.actionButton}
+                        onPress={handleLogout}
+                    >
+                        <LogOut color="#ef4444" size={22} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
+            {showSearch && (
+                <View style={styles.searchContainer}>
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search items, locations..."
+                        placeholderTextColor={Theme.colors.textMuted}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoFocus
+                    />
+                </View>
+            )}
+
             <View style={styles.tabs}>
-                <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-                    <Text style={[styles.tabText, styles.activeTabText]}>All Items</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.tab}>
-                    <Text style={styles.tabText}>Lost</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.tab}>
-                    <Text style={styles.tabText}>Found</Text>
-                </TouchableOpacity>
+                {['All Items', 'Lost', 'Found'].map((tab) => (
+                    <TouchableOpacity 
+                        key={tab}
+                        style={[styles.tab, activeTab === tab && styles.activeTab]}
+                        onPress={() => setActiveTab(tab)}
+                    >
+                        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                            {tab}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
 
             <FlatList
-                data={SAMPLE_ITEMS}
+                data={filteredItems}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No items found matching your filters</Text>
+                    </View>
+                }
             />
 
             <TouchableOpacity 
@@ -96,7 +153,7 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 40,
+        paddingTop: Platform.OS === 'android' ? 10 : 0,
     },
     header: {
         flexDirection: 'row',
@@ -104,6 +161,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: Theme.spacing.l,
         marginVertical: Theme.spacing.m,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        gap: 12,
     },
     greeting: {
         color: Theme.colors.textMuted,
@@ -114,7 +175,7 @@ const styles = StyleSheet.create({
         fontSize: Theme.fontSizes.xl,
         fontWeight: 'bold',
     },
-    searchButton: {
+    actionButton: {
         width: 44,
         height: 44,
         borderRadius: 22,
@@ -123,6 +184,24 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 0.5,
         borderColor: Theme.colors.glassBorder,
+    },
+    actionButtonActive: {
+        backgroundColor: Theme.colors.primary + '33',
+        borderColor: Theme.colors.primary,
+    },
+    searchContainer: {
+        paddingHorizontal: Theme.spacing.l,
+        marginBottom: Theme.spacing.m,
+    },
+    searchInput: {
+        backgroundColor: Theme.colors.glass,
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        color: Theme.colors.text,
+        fontSize: 16,
     },
     tabs: {
         flexDirection: 'row',
@@ -193,6 +272,14 @@ const styles = StyleSheet.create({
     footerText: {
         color: Theme.colors.textMuted,
         fontSize: 12,
+    },
+    emptyContainer: {
+        paddingVertical: 50,
+        alignItems: 'center',
+    },
+    emptyText: {
+        color: Theme.colors.textMuted,
+        fontSize: 16,
     },
     fab: {
         position: 'absolute',
