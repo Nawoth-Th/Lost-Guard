@@ -83,14 +83,21 @@ const ReportItemScreen = ({ navigation }) => {
             // 1. Upload Image if exists
             if (image) {
                 const formData = new FormData();
-                const uriParts = image.uri.split('.');
-                const fileType = uriParts[uriParts.length - 1] || 'jpeg';
+                
+                if (Platform.OS === 'web') {
+                    const response = await fetch(image.uri);
+                    const blob = await response.blob();
+                    formData.append('image', blob, 'photo.jpg');
+                } else {
+                    const uriParts = image.uri.split('.');
+                    const fileType = uriParts[uriParts.length - 1] || 'jpeg';
 
-                formData.append('image', {
-                    uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
-                    name: `photo.${fileType}`,
-                    type: `image/${fileType}`,
-                });
+                    formData.append('image', {
+                        uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
+                        name: `photo.${fileType}`,
+                        type: `image/${fileType}`,
+                    });
+                }
 
                 const { data: uploadedPath } = await api.post('/upload', formData, {
                     headers: {

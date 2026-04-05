@@ -48,14 +48,20 @@ const ClaimScreen = ({ route, navigation }) => {
             // 1. Upload Proof Image if exists
             if (proofImage) {
                 const formData = new FormData();
-                const uriParts = proofImage.uri.split('.');
-                const fileType = uriParts[uriParts.length - 1];
+                if (Platform.OS === 'web') {
+                    const response = await fetch(proofImage.uri);
+                    const blob = await response.blob();
+                    formData.append('image', blob, 'proof.jpg');
+                } else {
+                    const uriParts = proofImage.uri.split('.');
+                    const fileType = uriParts[uriParts.length - 1] || 'jpeg';
 
-                formData.append('image', {
-                    uri: proofImage.uri,
-                    name: `proof.${fileType}`,
-                    type: `image/${fileType}`,
-                });
+                    formData.append('image', {
+                        uri: Platform.OS === 'ios' ? proofImage.uri.replace('file://', '') : proofImage.uri,
+                        name: `proof.${fileType}`,
+                        type: `image/${fileType}`,
+                    });
+                }
 
                 const { data } = await api.post('/upload', formData, {
                     headers: {
