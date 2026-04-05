@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { getStorageItemAsync, setStorageItemAsync, deleteStorageItemAsync } from '../utils/storage';
 import api from '../api/api';
 
 export const AuthContext = createContext();
@@ -14,8 +14,8 @@ export const AuthProvider = ({ children }) => {
             const { data } = await api.post('/users/login', { email, password });
             setUserInfo(data);
             setUserToken(data.token);
-            await SecureStore.setItemAsync('userToken', data.token);
-            await SecureStore.setItemAsync('userInfo', JSON.stringify(data));
+            await setStorageItemAsync('userToken', data.token);
+            await setStorageItemAsync('userInfo', JSON.stringify(data));
         } catch (error) {
             console.error('Login Error:', error.response?.data?.message || error.message);
             throw error;
@@ -27,8 +27,8 @@ export const AuthProvider = ({ children }) => {
             const { data } = await api.post('/users', { name, email, password });
             setUserInfo(data);
             setUserToken(data.token);
-            await SecureStore.setItemAsync('userToken', data.token);
-            await SecureStore.setItemAsync('userInfo', JSON.stringify(data));
+            await setStorageItemAsync('userToken', data.token);
+            await setStorageItemAsync('userInfo', JSON.stringify(data));
         } catch (error) {
             console.error('Register Error:', error.response?.data?.message || error.message);
             throw error;
@@ -39,8 +39,8 @@ export const AuthProvider = ({ children }) => {
         try {
             setUserToken(null);
             setUserInfo(null);
-            await SecureStore.deleteItemAsync('userToken');
-            await SecureStore.deleteItemAsync('userInfo');
+            await deleteStorageItemAsync('userToken');
+            await deleteStorageItemAsync('userInfo');
         } catch (error) {
             console.error('Logout Error:', error.message);
         }
@@ -51,8 +51,8 @@ export const AuthProvider = ({ children }) => {
             const { data } = await api.put('/users/profile', profileData);
             setUserInfo(data);
             setUserToken(data.token);
-            await SecureStore.setItemAsync('userToken', data.token);
-            await SecureStore.setItemAsync('userInfo', JSON.stringify(data));
+            await setStorageItemAsync('userToken', data.token);
+            await setStorageItemAsync('userInfo', JSON.stringify(data));
             return data;
         } catch (error) {
             console.error('Update Profile Error:', error.response?.data?.message || error.message);
@@ -63,8 +63,8 @@ export const AuthProvider = ({ children }) => {
     const isLoggedIn = async () => {
         try {
             setIsLoading(true);
-            let token = await SecureStore.getItemAsync('userToken');
-            let info = await SecureStore.getItemAsync('userInfo');
+            let token = await getStorageItemAsync('userToken');
+            let info = await getStorageItemAsync('userInfo');
             
             if (token) {
                 setUserToken(token);
