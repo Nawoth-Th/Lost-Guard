@@ -2,8 +2,6 @@
 
 ![Lost Guard Banner](./frontend/assets/lostguardbanner.png)
 
-[![Download APK](https://img.shields.io/badge/Download_APK-v1.0.0-green?style=for-the-badge&logo=android&logoColor=white)](https://expo.dev/artifacts/eas/9NMZkG9yq8bTdmDGESogwS.apk)
-
 **Lost Guard** is a premium, campus-aware full-stack platform designed to reconnect students and staff with their lost belongings through intelligent matching, secure blind-question verification, and real-time community trust.
 
 ![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
