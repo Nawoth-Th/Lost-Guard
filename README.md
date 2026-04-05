@@ -2,6 +2,8 @@
 
 # 🛡️ Lost Guard - Advanced University Lost & Found App
 
+[![Download APK](https://img.shields.io/badge/Download_APK-v1.0.0-green?style=for-the-badge&logo=android&logoColor=white)](https://expo.dev/artifacts/eas/9NMZkG9yq8bTdmDGESogwS.apk)
+
 **Lost Guard** is a premium, campus-aware full-stack platform designed to reconnect students and staff with their lost belongings through intelligent matching, secure blind-question verification, and real-time community trust.
 
 ![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
@@ -34,6 +36,43 @@ Campus locations, item categories, and location blocks are fully managed via the
 ### 🏥 Verified Drop-off Hubs
 
 Items can be marked as **"Secured at Hub"** (e.g., Security Gate 1, Student Affairs). A shield badge on the item ensures the student that their item is safe and ready for pickup.
+
+---
+
+## 🔄 System Workflows
+
+### **Item Recovery Lifecycle**
+```mermaid
+graph TD
+    A[Lost Item Reported] --> B{Matching Engine}
+    B -- Match Found --> C[Send Email Alert]
+    D[Found Item Reported] --> B
+    D --> E[Set Security Question]
+    F[User Claims Item] --> G{Answer Correct?}
+    G -- No --> H[Claim Rejected]
+    G -- Yes --> I[Admin Review Proof]
+    I --> J[Item Recovered]
+    J --> K[+10 Trust Points]
+```
+
+### **Verification Workflow**
+1.  **Finder**: Sets a "Blind Question" during the found report.
+2.  **Claimant**: Must provide the correct string answer to view the owner's contact info.
+3.  **Admin**: Validates the secondary physical proof (image) before final closure.
+
+---
+
+## 🗄️ Database Architecture (MongoDB Atlas)
+
+The system utilizes a structured NoSQL schema for high flexibility and performance:
+
+- **`users`**: Authentication, profile data, and the `trustScore` gamification field.
+- **`items`**: Core reports containing `locationBlock`, `isAtHub`, and `verificationQuestion` fields.
+- **`claims`**: Linking users to items with proof and approval statuses.
+- **`categories`**: Dynamic list of item types for filtering.
+- **`locations`**: Campus-specific building and block mapping.
+- **`statusLogs`**: Persistent audit trail for every status change (Reported -> Hub -> Recovered).
+- **`notifications`**: Real-time in-app alerts for matches.
 
 ---
 
