@@ -1,6 +1,6 @@
-![Lost Guard Banner](./frontend/assets/lostguardbanner.png)
-
 # 🛡️ Lost Guard - Advanced University Lost & Found App
+
+![Lost Guard Banner](./frontend/assets/lostguardbanner.png)
 
 [![Download APK](https://img.shields.io/badge/Download_APK-v1.0.0-green?style=for-the-badge&logo=android&logoColor=white)](https://expo.dev/artifacts/eas/9NMZkG9yq8bTdmDGESogwS.apk)
 
@@ -42,6 +42,7 @@ Items can be marked as **"Secured at Hub"** (e.g., Security Gate 1, Student Affa
 ## 🔄 System Workflows
 
 ### **Item Recovery Lifecycle**
+
 ```mermaid
 graph TD
     A[Lost Item Reported] --> B{Matching Engine}
@@ -56,9 +57,10 @@ graph TD
 ```
 
 ### **Verification Workflow**
-1.  **Finder**: Sets a "Blind Question" during the found report.
-2.  **Claimant**: Must provide the correct string answer to view the owner's contact info.
-3.  **Admin**: Validates the secondary physical proof (image) before final closure.
+
+1. **Finder**: Sets a "Blind Question" during the found report.
+2. **Claimant**: Must provide the correct string answer to view the owner's contact info.
+3. **Admin**: Validates the secondary physical proof (image) before final closure.
 
 ---
 
@@ -118,7 +120,8 @@ The system utilizes a structured NoSQL schema for high flexibility and performan
 
 The application is deployed across a high-performance cloud infrastructure:
 
-- **Frontend**: **DigitalOcean App Platform** (Static Site). Served via Global CDN for low latency.
+- **Frontend**: **Expo Cloud (EAS)**. Deployment and updates handled via EAS 24/7 for the mobile app.
+- **Web App**: **Expo Web Preview**. Accessible via browser for desktop users.
 - **Backend**: **Heroku PaaS**. Running the Node.js Express API.
 - **Database**: **MongoDB Atlas**. Managed cloud database with indexing for search.
 - **Storage**: **Cloudinary**. Optimized image transformations and delivery.
@@ -153,6 +156,6 @@ The application is deployed across a high-performance cloud infrastructure:
 
 ## 📄 License
 
-2nd Year WMT Module Submission. Creative Commons Zero v1.0 Universal.
+2nd Year WMT Module Assigment Submission. Creative Commons Zero v1.0 Universal.
 
 Developed with ❤️ for the University Community.
