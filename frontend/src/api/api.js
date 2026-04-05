@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 // Uses EXPO_PUBLIC_ prefix to be automatically loaded in Expo SDK 49+
-// This is defined in your .env file
+// On DigitalOcean, you will set this in the App Platform DASHBOARD
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
 console.log('🔗 Connecting to Backend at:', API_URL);
 
