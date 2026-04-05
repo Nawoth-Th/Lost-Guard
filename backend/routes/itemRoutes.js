@@ -7,7 +7,8 @@ const {
     deleteItem,
     getMatchingItems,
     getMyItems,
-    getItemStatusLogs
+    getItemStatusLogs,
+    updateItemHub
 } = require('../controllers/itemController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
