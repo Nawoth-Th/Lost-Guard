@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Camera, ChevronLeft, X, Send } from 'lucide-react-native';
+import { Camera, ChevronLeft, X, Send, ShieldCheck } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
@@ -12,6 +12,7 @@ import api from '../api/api';
 const ClaimScreen = ({ route, navigation }) => {
     const { item } = route.params;
     const [message, setMessage] = useState('');
+    const [verificationAnswer, setVerificationAnswer] = useState('');
     const [proofImage, setProofImage] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -68,7 +69,8 @@ const ClaimScreen = ({ route, navigation }) => {
             await api.post('/claims', {
                 itemId: item._id,
                 message,
-                proofImage: proofImagePath
+                proofImage: proofImagePath,
+                verificationAnswer,
             });
 
             Alert.alert('Success', 'Claim submitted successfully! The owner will review your request.', [
@@ -106,6 +108,24 @@ const ClaimScreen = ({ route, navigation }) => {
                         <Text style={styles.itemRef}>Claiming: {item.title}</Text>
                         
                         <GlassCard style={styles.card}>
+                            {item.verificationQuestion && (
+                                <View style={styles.verificationSection}>
+                                    <View style={styles.verificationHeader}>
+                                        <ShieldCheck size={20} color={Theme.colors.primary} />
+                                        <Text style={styles.verificationTitle}>Security Question</Text>
+                                    </View>
+                                    <Text style={styles.questionText}>"{item.verificationQuestion}"</Text>
+                                    <Text style={styles.label}>Your Answer *</Text>
+                                    <GlassInput
+                                        placeholder="Answer correctly to prove ownership..."
+                                        value={verificationAnswer}
+                                        onChangeText={setVerificationAnswer}
+                                        style={styles.answerInput}
+                                    />
+                                    <View style={styles.divider} />
+                                </View>
+                            )}
+                            
                             <Text style={styles.instruction}>
                                 Provide a detailed description or proof (like a photo of the receipt, specific identifying marks, or the serial number) to help the owner verify you.
                             </Text>
@@ -285,6 +305,38 @@ const styles = StyleSheet.create({
         color: Theme.colors.text,
         fontWeight: 'bold',
         fontSize: Theme.fontSizes.m,
+    },
+    verificationSection: {
+        marginBottom: Theme.spacing.l,
+    },
+    verificationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 8,
+    },
+    verificationTitle: {
+        color: Theme.colors.text,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    questionText: {
+        color: Theme.colors.primary,
+        fontSize: 15,
+        fontWeight: '600',
+        fontStyle: 'italic',
+        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: Theme.spacing.m,
+    },
+    answerInput: {
+        marginBottom: Theme.spacing.m,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: Theme.colors.glassBorder,
+        marginVertical: Theme.spacing.m,
     },
 });
 

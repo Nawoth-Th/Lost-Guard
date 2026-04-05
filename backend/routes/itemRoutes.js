@@ -9,7 +9,7 @@ const {
     getMyItems,
     getItemStatusLogs
 } = require('../controllers/itemController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -26,6 +26,9 @@ router.route('/:id')
 
 router.route('/:id/status')
     .put(protect, updateItemStatus);
+
+router.route('/:id/hub')
+    .patch(protect, admin, updateItemHub);
 
 router.route('/:id/matches')
     .get(getMatchingItems);

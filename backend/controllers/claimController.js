@@ -7,13 +7,25 @@ const { sendEmail, templates } = require('../utils/emailService');
 // @route   POST /api/claims
 // @access  Private
 const submitClaim = async (req, res) => {
-    const { itemId, message, proofImage } = req.body;
+    const { itemId, message, proofImage, verificationAnswer } = req.body;
 
     try {
         const item = await Item.findById(itemId);
 
         if (!item) {
             return res.status(404).json({ message: 'Item not found' });
+        }
+
+        // Blind Question Verification: If the item has a prompt, check the answer
+        if (item.verificationQuestion && item.verificationAnswer) {
+            if (!verificationAnswer) {
+                return res.status(400).json({ message: 'Verification answer is required for this item' });
+            }
+            
+            // Case-insensitive check
+            if (verificationAnswer.trim().toLowerCase() !== item.verificationAnswer.trim().toLowerCase()) {
+                return res.status(401).json({ message: 'Incorrect verification answer. Ownership could not be proven.' });
+            }
         }
 
         // Check if user already claimed this item

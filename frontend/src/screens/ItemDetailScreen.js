@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert, Image, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2, History } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2, History, ShieldCheck } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
@@ -164,10 +164,20 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     </View>
 
                     <View style={styles.mainInfo}>
-                        <Text style={styles.category}>{item.category}</Text>
-                        <Text style={styles.title}>{item.title}</Text>
+                        <View style={styles.titleRow}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.category}>{item.category}</Text>
+                                <Text style={styles.title}>{item.title}</Text>
+                            </View>
+                            {item.isAtHub && (
+                                <View style={styles.hubBadge}>
+                                    <ShieldCheck size={18} color="#10b981" />
+                                    <Text style={styles.hubBadgeText}>VERIFIED</Text>
+                                </View>
+                            )}
+                        </View>
                         
-                        <View style={{ flexDirection: 'row', gap: 16 }}>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
                             <View style={styles.infoItem}>
                                 <MapPin size={16} color={Theme.colors.primary} />
                                 <Text style={styles.infoText}>{item.location}</Text>
@@ -176,6 +186,12 @@ const ItemDetailScreen = ({ route, navigation }) => {
                                 <Clock size={16} color={Theme.colors.primary} />
                                 <Text style={styles.infoText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
                             </View>
+                            {item.isAtHub && (
+                                <View style={styles.infoItem}>
+                                    <ShieldCheck size={16} color="#10b981" />
+                                    <Text style={[styles.infoText, { color: '#10b981', fontWeight: 'bold' }]}>Secured at: {item.hubName}</Text>
+                                </View>
+                            )}
                         </View>
                     </View>
 
@@ -545,6 +561,27 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         textAlign: 'center',
         marginTop: 10,
+    },
+    titleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    hubBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(16, 185, 129, 0.2)',
+        gap: 6,
+    },
+    hubBadgeText: {
+        color: '#10b981',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
 });
 

@@ -2,23 +2,44 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, ShieldCheck, CheckCircle, XCircle, User, Package } from 'lucide-react-native';
+import { ChevronLeft, ShieldCheck, CheckCircle, XCircle, User, Package, Plus, Trash2, Edit2, MapPin, Tag } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
+import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import api from '../api/api';
 
 const AdminDashboardScreen = ({ navigation }) => {
+    const [activeTab, setActiveTab] = useState('Claims');
     const [claims, setClaims] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [locations, setLocations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [modalType, setModalType] = useState(''); // 'category' or 'location'
+    const [editItem, setEditItem] = useState(null);
 
-    const fetchAllClaims = async () => {
+    // Form states
+    const [catName, setCatName] = useState('');
+    const [locName, setLocName] = useState('');
+    const [locBlock, setLocBlock] = useState('');
+
+    const fetchData = async () => {
+        setLoading(true);
         try {
-            const { data } = await api.get('/claims?type=all');
-            setClaims(data);
+            if (activeTab === 'Claims') {
+                const { data } = await api.get('/claims?type=all');
+                setClaims(data);
+            } else if (activeTab === 'Categories') {
+                const { data } = await api.get('/categories');
+                setCategories(data);
+            } else if (activeTab === 'Locations') {
+                const { data } = await api.get('/locations');
+                setLocations(data);
+            }
         } catch (error) {
-            console.error('Fetch All Claims Error:', error.message);
-            Alert.alert('Error', 'Failed to load claims.');
+            console.error(`Fetch ${activeTab} Error:`, error.message);
+            Alert.alert('Error', `Failed to load ${activeTab}.`);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -26,22 +47,76 @@ const AdminDashboardScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-        fetchAllClaims();
-    }, []);
+        fetchData();
+    }, [activeTab]);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        fetchAllClaims();
-    }, []);
+        fetchData();
+    }, [activeTab]);
 
     const handleUpdateStatus = async (id, status) => {
         try {
             await api.put(`/claims/${id}`, { status });
             Alert.alert('Success', `Claim ${status} successfully.`);
-            fetchAllClaims(); // Reload
+            fetchData();
         } catch (error) {
             Alert.alert('Error', 'Failed to update claim status.');
         }
+    };
+
+    const handleSaveMetadata = async () => {
+        try {
+            const endpoint = modalType === 'category' ? '/categories' : '/locations';
+            const payload = modalType === 'category' ? { name: catName } : { name: locName, block: locBlock };
+            
+            if (editItem) {
+                await api.put(`${endpoint}/${editItem._id}`, payload);
+            } else {
+                await api.post(endpoint, payload);
+            }
+            
+            setShowModal(false);
+            setEditItem(null);
+            setCatName('');
+            setLocName('');
+            setLocBlock('');
+            fetchData();
+            Alert.alert('Success', `${modalType} saved successfully.`);
+        } catch (error) {
+            Alert.alert('Error', error.response?.data?.message || 'Failed to save.');
+        }
+    };
+
+    const handleDeleteMetadata = async (id, type) => {
+        Alert.alert(
+            "Confirm Delete",
+            `Are you sure you want to remove this ${type}?`,
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", style: "destructive", onPress: async () => {
+                    try {
+                        const endpoint = type === 'category' ? `/categories/${id}` : `/locations/${id}`;
+                        await api.delete(endpoint);
+                        fetchData();
+                    } catch (error) {
+                        Alert.alert('Error', 'Failed to delete.');
+                    }
+                }}
+            ]
+        );
+    };
+
+    const openEditModal = (item, type) => {
+        setModalType(type);
+        setEditItem(item);
+        if (type === 'category') {
+            setCatName(item.name);
+        } else {
+            setLocName(item.name);
+            setLocBlock(item.block);
+        }
+        setShowModal(true);
     };
 
     const renderClaim = ({ item: claim }) => {
@@ -99,6 +174,43 @@ const AdminDashboardScreen = ({ navigation }) => {
         );
     };
 
+    const renderCategory = ({ item }) => (
+        <GlassCard style={styles.metaCard}>
+            <View style={styles.metaInfo}>
+                <Tag size={18} color={Theme.colors.primary} />
+                <Text style={styles.metaTitle}>{item.name}</Text>
+            </View>
+            <View style={styles.metaActions}>
+                <TouchableOpacity onPress={() => openEditModal(item, 'category')}>
+                    <Edit2 size={18} color={Theme.colors.textMuted} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteMetadata(item._id, 'category')}>
+                    <Trash2 size={18} color="#ef4444" />
+                </TouchableOpacity>
+            </View>
+        </GlassCard>
+    );
+
+    const renderLocation = ({ item }) => (
+        <GlassCard style={styles.metaCard}>
+            <View style={styles.metaInfo}>
+                <MapPin size={18} color={Theme.colors.primary} />
+                <View>
+                    <Text style={styles.metaTitle}>{item.name}</Text>
+                    <Text style={styles.metaSub}>Block: {item.block}</Text>
+                </View>
+            </View>
+            <View style={styles.metaActions}>
+                <TouchableOpacity onPress={() => openEditModal(item, 'location')}>
+                    <Edit2 size={18} color={Theme.colors.textMuted} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteMetadata(item._id, 'location')}>
+                    <Trash2 size={18} color="#ef4444" />
+                </TouchableOpacity>
+            </View>
+        </GlassCard>
+    );
+
     return (
         <View style={styles.container}>
             <LinearGradient
@@ -115,11 +227,32 @@ const AdminDashboardScreen = ({ navigation }) => {
                         <ShieldCheck size={20} color="#FBBF24" />
                         <Text style={styles.headerTitle}>Moderation</Text>
                     </View>
-                    <View style={{ width: 44 }} />
+                    <TouchableOpacity 
+                        style={styles.addButton}
+                        onPress={() => {
+                            if (activeTab === 'Claims') return;
+                            setModalType(activeTab === 'Categories' ? 'category' : 'location');
+                            setEditItem(null);
+                            setCatName('');
+                            setLocName('');
+                            setLocBlock('');
+                            setShowModal(true);
+                        }}
+                    >
+                        {activeTab !== 'Claims' && <Plus color={Theme.colors.primary} size={24} />}
+                    </TouchableOpacity>
                 </View>
 
-                <View style={styles.statsBar}>
-                    <Text style={styles.statsText}>{claims.filter(c => c.status === 'Pending').length} Pending Claims</Text>
+                <View style={styles.tabs}>
+                    {['Claims', 'Categories', 'Locations'].map((tab) => (
+                        <TouchableOpacity 
+                            key={tab}
+                            style={[styles.tab, activeTab === tab && styles.activeTab]}
+                            onPress={() => setActiveTab(tab)}
+                        >
+                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
 
                 {loading ? (
@@ -128,8 +261,8 @@ const AdminDashboardScreen = ({ navigation }) => {
                     </View>
                 ) : (
                     <FlatList
-                        data={claims}
-                        renderItem={renderClaim}
+                        data={activeTab === 'Claims' ? claims : activeTab === 'Categories' ? categories : locations}
+                        renderItem={activeTab === 'Claims' ? renderClaim : activeTab === 'Categories' ? renderCategory : renderLocation}
                         keyExtractor={item => item._id}
                         contentContainerStyle={styles.listContent}
                         refreshControl={
@@ -138,11 +271,57 @@ const AdminDashboardScreen = ({ navigation }) => {
                         ListEmptyComponent={
                             <View style={styles.emptyContainer}>
                                 <ShieldCheck color={Theme.colors.textMuted} size={48} />
-                                <Text style={styles.emptyText}>No claims found</Text>
-                                <Text style={styles.emptySubText}>Global claims awaiting verification will appear here.</Text>
+                                <Text style={styles.emptyText}>No {activeTab.toLowerCase()} found</Text>
                             </View>
                         }
                     />
+                )}
+
+                {/* CRUD Modal */}
+                {showModal && (
+                    <View style={styles.modalOverlay}>
+                        <GlassCard style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>
+                                {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : 'Location'}
+                            </Text>
+                            
+                            {modalType === 'category' ? (
+                                <GlassInput
+                                    placeholder="Category Name"
+                                    value={catName}
+                                    onChangeText={setCatName}
+                                />
+                            ) : (
+                                <>
+                                    <GlassInput
+                                        placeholder="Location Name"
+                                        value={locName}
+                                        onChangeText={setLocName}
+                                    />
+                                    <GlassInput
+                                        placeholder="Block (e.g. NAB, Computing)"
+                                        value={locBlock}
+                                        onChangeText={setLocBlock}
+                                    />
+                                </>
+                            )}
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity 
+                                    style={[styles.modalBtn, styles.cancelBtn]} 
+                                    onPress={() => setShowModal(false)}
+                                >
+                                    <Text style={styles.cancelText}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={[styles.modalBtn, styles.saveBtn]} 
+                                    onPress={handleSaveMetadata}
+                                >
+                                    <Text style={styles.saveText}>Save</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </GlassCard>
+                    </View>
                 )}
             </SafeAreaView>
         </View>
@@ -305,6 +484,109 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 8,
         paddingHorizontal: 40,
+    },
+    tabs: {
+        flexDirection: 'row',
+        paddingHorizontal: Theme.spacing.l,
+        marginBottom: 12,
+        gap: 12,
+    },
+    tab: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        backgroundColor: Theme.colors.glass,
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+    },
+    activeTab: {
+        backgroundColor: Theme.colors.primary,
+        borderColor: Theme.colors.primary,
+    },
+    tabText: {
+        color: Theme.colors.textMuted,
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    activeTabText: {
+        color: Theme.colors.text,
+    },
+    addButton: {
+        width: 44,
+        height: 44,
+        backgroundColor: Theme.colors.glass,
+        borderRadius: 22,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+    },
+    metaCard: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        marginBottom: 12,
+    },
+    metaInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    metaTitle: {
+        color: Theme.colors.text,
+        fontSize: 15,
+        fontWeight: 'bold',
+    },
+    metaSub: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
+    },
+    metaActions: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    modalOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        padding: 24,
+        zIndex: 1000,
+    },
+    modalContent: {
+        padding: 24,
+    },
+    modalTitle: {
+        color: Theme.colors.text,
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    modalActions: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 10,
+    },
+    modalBtn: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelBtn: {
+        backgroundColor: 'rgba(255,255,255,0.05)',
+    },
+    saveBtn: {
+        backgroundColor: Theme.colors.primary,
+    },
+    cancelText: {
+        color: Theme.colors.textMuted,
+        fontWeight: 'bold',
+    },
+    saveText: {
+        color: Theme.colors.text,
+        fontWeight: 'bold',
     }
 });
 

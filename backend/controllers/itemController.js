@@ -1,6 +1,8 @@
 const Item = require('../models/Item');
 const StatusLog = require('../models/StatusLog');
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
+const Notification = require('../models/Notification');
 const { sendEmail, templates } = require('../utils/emailService');
 
 // @desc    Fetch all items (with keyword search)
@@ -49,9 +51,19 @@ const getItemById = async (req, res) => {
 // @route   POST /api/items
 // @access  Private
 const createItem = async (req, res) => {
-    const { title, description, category, location, type, image } = req.body;
+    const { 
+        title, 
+        description, 
+        category, 
+        location, 
+        locationBlock, 
+        type, 
+        image, 
+        verificationQuestion, 
+        verificationAnswer 
+    } = req.body;
 
-    if (!title || !description || !category || !location || !type) {
+    if (!title || !description || !category || !location || !locationBlock || !type) {
         return res.status(400).json({ message: 'Please fill all required fields' });
     }
 
@@ -61,9 +73,12 @@ const createItem = async (req, res) => {
             description,
             category,
             location,
+            locationBlock,
             type,
             user: req.user._id,
             image,
+            verificationQuestion,
+            verificationAnswer
         });
 
         const createdItem = await item.save();
@@ -79,25 +94,17 @@ const createItem = async (req, res) => {
         // 🔍 Automated Matching Alerts (non-blocking)
         try {
             const matchType = type === 'Lost' ? 'Found' : 'Lost';
-            const titleWords = title.split(' ').filter(word => word.length > 2);
-            const titleRegex = titleWords.length > 0 ? new RegExp(titleWords.join('|'), 'i') : null;
-
+            
+            // Smart matching logic: find items of opposite type with same category AND same location block
             const matchQuery = {
                 _id: { $ne: createdItem._id },
                 type: matchType,
+                category,
+                locationBlock,
                 status: 'Pending',
             };
 
-            if (titleRegex) {
-                matchQuery.$or = [
-                    { category: category },
-                    { title: { $regex: titleRegex } }
-                ];
-            } else {
-                matchQuery.category = category;
-            }
-
-            const matches = await Item.find(matchQuery).limit(3).populate('user');
+            const matches = await Item.find(matchQuery).limit(5).populate('user');
 
             matches.forEach(match => {
                 if (match.user && match.user.email && match.user._id.toString() !== req.user._id.toString()) {
@@ -108,8 +115,36 @@ const createItem = async (req, res) => {
                     }).catch(err => console.error('Match email error:', err.message));
                 }
             });
+
+            // 🔔 Watchlist/Subscription Alerts
+            if (type === 'Found') {
+                const subscriptions = await Subscription.find({
+                    category,
+                    locationBlock,
+                    user: { $ne: req.user._id }
+                }).populate('user');
+
+                subscriptions.forEach(async (sub) => {
+                    if (sub.user) {
+                        await Notification.create({
+                            user: sub.user._id,
+                            title: 'Watchlist Alert! 🔔',
+                            message: `A new "${category}" has been found in ${locationBlock}.`,
+                            item: createdItem._id
+                        });
+                        
+                        if (sub.user.email) {
+                            sendEmail({
+                                email: sub.user.email,
+                                subject: `Watchlist Alert: ${category} in ${locationBlock} 🛡️`,
+                                message: `Good news! Someone found an item matching your criteria in ${locationBlock}. Log in to view details.`
+                            }).catch(err => console.error('Watchlist email error:', err.message));
+                        }
+                    }
+                });
+            }
         } catch (matchErr) {
-            console.error('Match logic error (non-fatal):', matchErr.message);
+            console.error('Match/Subscription logic error (non-fatal):', matchErr.message);
         }
 
         res.status(201).json(createdItem);
@@ -135,6 +170,15 @@ const updateItemStatus = async (req, res) => {
 
             item.status = status;
             const updatedItem = await item.save();
+
+            // 🏆 Trust Score: If marked as recovered, reward the finder
+            if (status === 'Recovered' && item.type === 'Found') {
+                const finder = await User.findById(item.user);
+                if (finder) {
+                    finder.trustScore += 10;
+                    await finder.save();
+                }
+            }
 
             // Create StatusLog entry
             await StatusLog.create({
@@ -177,8 +221,8 @@ const deleteItem = async (req, res) => {
     }
 };
 
-// @desc    Get matching items for suggestions
-// @route   GET /api/items/:id/matches
+// @desc    Get smart matches for suggestions based on Category and Block
+// @route   GET /api/items/matches/:id
 // @access  Public
 const getMatchingItems = async (req, res) => {
     try {
@@ -190,31 +234,55 @@ const getMatchingItems = async (req, res) => {
 
         const matchType = item.type === 'Lost' ? 'Found' : 'Lost';
         
-        // Simple matching logic: find items of opposite type with same category
-        // and whose title sounds similar (contains any of the words)
-        const titleWords = item.title.split(' ').filter(word => word.length > 2);
-        const titleRegex = titleWords.length > 0 ? new RegExp(titleWords.join('|'), 'i') : null;
-
+        // Campus Matching: Find opposite type with same category and same location block
         const matchQuery = {
             _id: { $ne: item._id },
             type: matchType,
+            category: item.category,
+            locationBlock: item.locationBlock,
+            status: 'Pending'
         };
 
-        if (titleRegex) {
-            matchQuery.$or = [
-                { category: item.category },
-                { title: { $regex: titleRegex } }
-            ];
-        } else {
-            matchQuery.category = item.category;
-        }
-
-        const matches = await Item.find(matchQuery).limit(5);
+        const matches = await Item.find(matchQuery).limit(5).populate('user', 'name');
 
         res.json(matches);
     } catch (error) {
         console.error('Match Items Error:', error);
         res.status(500).json({ message: error.message || 'Server Error' });
+    }
+};
+
+// @desc    Update item hub status
+// @route   PATCH /api/items/:id/hub
+// @access  Private/Admin
+const updateItemHub = async (req, res) => {
+    try {
+        const { isAtHub, hubName } = req.body;
+        const item = await Item.findById(req.params.id);
+
+        if (item) {
+            if (!req.user.isAdmin) {
+                return res.status(401).json({ message: 'Not authorized - Admin only' });
+            }
+
+            item.isAtHub = isAtHub;
+            item.hubName = isAtHub ? hubName : '';
+            
+            const updatedItem = await item.save();
+            
+            await StatusLog.create({
+                item: item._id,
+                status: isAtHub ? 'Secured at Hub' : 'In Circulation',
+                changedBy: req.user._id,
+                remarks: isAtHub ? `Item secured at ${hubName}` : 'Item released from hub'
+            });
+
+            res.json(updatedItem);
+        } else {
+            res.status(404).json({ message: 'Item not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
     }
 };
 
@@ -264,5 +332,6 @@ module.exports = {
     deleteItem,
     getMatchingItems,
     getMyItems,
-    getItemStatusLogs
+    getItemStatusLogs,
+    updateItemHub
 };

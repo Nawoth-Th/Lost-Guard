@@ -89,6 +89,7 @@ const getUserProfile = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 isAdmin: user.isAdmin,
+                trustScore: user.trustScore,
             });
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -120,6 +121,7 @@ const updateUserProfile = async (req, res) => {
                 name: updatedUser.name,
                 email: updatedUser.email,
                 isAdmin: updatedUser.isAdmin,
+                trustScore: updatedUser.trustScore,
                 token: generateToken(updatedUser._id),
             });
         } else {
@@ -131,4 +133,25 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-module.exports = { authUser, registerUser, getUserProfile, updateUserProfile };
+// @desc    Get top users by trust score
+// @route   GET /api/users/leaderboard
+// @access  Public
+const getLeaderboard = async (req, res) => {
+    try {
+        const users = await User.find({})
+            .select('name trustScore')
+            .sort({ trustScore: -1 })
+            .limit(10);
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error fetching leaderboard' });
+    }
+};
+
+module.exports = { 
+    authUser, 
+    registerUser, 
+    getUserProfile, 
+    updateUserProfile,
+    getLeaderboard
+};

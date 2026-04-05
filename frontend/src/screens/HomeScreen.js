@@ -1,21 +1,41 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, RefreshControl, Platform } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, RefreshControl, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Plus, MapPin, Clock, MessageCircle, User } from 'lucide-react-native';
+import { Search, Plus, MapPin, Clock, MessageCircle, User, Trophy, Bell } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/api';
+import { getImageUrl } from '../utils/imageHelper';
 
 const HomeScreen = ({ navigation }) => {
     const { logout, userInfo } = useContext(AuthContext);
     const [items, setItems] = useState([]);
+    const [suggestedItems, setSuggestedItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('All Items');
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearch, setShowSearch] = useState(false);
+
+    const fetchSuggestedItems = async () => {
+        try {
+            // 1. Get user's active lost items
+            const { data: myItems } = await api.get('/items/myitems');
+            const lostItems = myItems.filter(i => i.type === 'Lost' && i.status === 'Pending');
+            
+            if (lostItems.length > 0) {
+                // 2. Get matches for the most recent lost item
+                const { data: matches } = await api.get(`/items/${lostItems[0]._id}/matches`);
+                setSuggestedItems(matches);
+            } else {
+                setSuggestedItems([]);
+            }
+        } catch (error) {
+            console.error('Fetch Suggested Error:', error.message);
+        }
+    };
 
     const fetchItems = async (keyword = '') => {
         try {
@@ -31,11 +51,8 @@ const HomeScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            fetchItems(searchQuery);
-        }, 500);
-
-        return () => clearTimeout(delayDebounceFn);
+        fetchItems(searchQuery);
+        fetchSuggestedItems();
     }, [searchQuery]);
 
     const onRefresh = useCallback(() => {
@@ -46,6 +63,27 @@ const HomeScreen = ({ navigation }) => {
     const filteredItems = items.filter(item => {
         return activeTab === 'All Items' || item.type === activeTab;
     });
+
+    const renderSuggestedItem = ({ item }) => (
+        <TouchableOpacity 
+            style={styles.suggestedCard}
+            onPress={() => navigation.navigate('ItemDetail', { id: item._id })}
+        >
+            <GlassCard style={styles.suggestedGlass}>
+                <Image source={{ uri: getImageUrl(item.image) }} style={styles.suggestedImage} />
+                <View style={styles.suggestedInfo}>
+                    <Text style={styles.suggestedTitle} numberOfLines={1}>{item.title}</Text>
+                    <View style={styles.suggestedLoc}>
+                        <MapPin size={10} color={Theme.colors.primary} />
+                        <Text style={styles.suggestedLocText}>{item.location}</Text>
+                    </View>
+                </View>
+                <View style={styles.matchBadge}>
+                    <Text style={styles.matchBadgeText}>Match ✨</Text>
+                </View>
+            </GlassCard>
+        </TouchableOpacity>
+    );
 
     const handleLogout = () => {
         Alert.alert(
@@ -102,6 +140,12 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.headerActions}>
                     <TouchableOpacity 
                         style={styles.actionButton}
+                        onPress={() => navigation.navigate('Leaderboard')}
+                    >
+                        <Trophy color="#FBBF24" size={20} />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.actionButton}
                         onPress={() => navigation.navigate('Inbox')}
                     >
                         <MessageCircle color={Theme.colors.text} size={22} />
@@ -111,12 +155,6 @@ const HomeScreen = ({ navigation }) => {
                         onPress={() => setShowSearch(!showSearch)}
                     >
                         <Search color={showSearch ? Theme.colors.primary : Theme.colors.text} size={22} />
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={styles.actionButton}
-                        onPress={() => navigation.navigate('Profile')}
-                    >
-                        <User color={Theme.colors.text} size={22} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -134,41 +172,52 @@ const HomeScreen = ({ navigation }) => {
                 </View>
             )}
 
-            <View style={styles.tabs}>
-                {['All Items', 'Lost', 'Found'].map((tab) => (
-                    <TouchableOpacity 
-                        key={tab}
-                        style={[styles.tab, activeTab === tab && styles.activeTab]}
-                        onPress={() => setActiveTab(tab)}
-                    >
-                        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                            {tab}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={Theme.colors.primary} />
-                </View>
-            ) : (
-                <FlatList
-                    data={filteredItems}
-                    renderItem={renderItem}
-                    keyExtractor={item => item._id}
-                    contentContainerStyle={styles.listContent}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.primary} />
-                    }
-                    ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No items found matching your filters</Text>
+            <FlatList
+                data={filteredItems}
+                renderItem={renderItem}
+                keyExtractor={item => item._id}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.primary} />
+                }
+                ListHeaderComponent={
+                    <>
+                        {suggestedItems.length > 0 && (
+                            <View style={styles.suggestedSection}>
+                                <Text style={styles.sectionTitle}>Suggested for You ✨</Text>
+                                <FlatList
+                                    horizontal
+                                    data={suggestedItems}
+                                    renderItem={renderSuggestedItem}
+                                    keyExtractor={item => `suggested-${item._id}`}
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={styles.suggestedList}
+                                />
+                            </View>
+                        )}
+                        <View style={styles.tabs}>
+                            {['All Items', 'Lost', 'Found'].map((tab) => (
+                                <TouchableOpacity 
+                                    key={tab}
+                                    style={[styles.tab, activeTab === tab && styles.activeTab]}
+                                    onPress={() => setActiveTab(tab)}
+                                >
+                                    <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                                        {tab}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
-                    }
-                />
-            )}
+                    </>
+                }
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No items found matching your filters</Text>
+                    </View>
+                }
+            />
+
 
             <TouchableOpacity 
                 style={styles.fab}
@@ -338,6 +387,64 @@ const styles = StyleSheet.create({
         borderRadius: 32,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    suggestedSection: {
+        marginBottom: Theme.spacing.l,
+    },
+    sectionTitle: {
+        color: Theme.colors.text,
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: Theme.spacing.m,
+    },
+    suggestedList: {
+        paddingRight: Theme.spacing.l,
+    },
+    suggestedCard: {
+        width: 160,
+        marginRight: Theme.spacing.m,
+    },
+    suggestedGlass: {
+        padding: 8,
+        borderRadius: 16,
+    },
+    suggestedImage: {
+        width: '100%',
+        height: 100,
+        borderRadius: 12,
+        marginBottom: 8,
+    },
+    suggestedInfo: {
+        paddingHorizontal: 4,
+    },
+    suggestedTitle: {
+        color: Theme.colors.text,
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginBottom: 2,
+    },
+    suggestedLoc: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    suggestedLocText: {
+        color: Theme.colors.textMuted,
+        fontSize: 10,
+    },
+    matchBadge: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        backgroundColor: Theme.colors.primary,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 8,
+    },
+    matchBadgeText: {
+        color: '#fff',
+        fontSize: 9,
+        fontWeight: 'bold',
     },
 });
 

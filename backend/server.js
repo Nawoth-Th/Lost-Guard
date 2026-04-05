@@ -26,6 +26,10 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/items', require('./routes/itemRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/claims', require('./routes/claimRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/locations', require('./routes/locationRoutes'));
+app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 
 // Basic Route
