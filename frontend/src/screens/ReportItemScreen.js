@@ -8,6 +8,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { getStorageItemAsync } from '../utils/storage';
 
 const ReportItemScreen = ({ navigation }) => {
     const [title, setTitle] = useState('');
@@ -99,15 +100,23 @@ const ReportItemScreen = ({ navigation }) => {
                     });
                 }
 
-                const { data: uploadedPath } = await api.post('/upload', formData, {
+                const token = await getStorageItemAsync('userToken');
+                const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+                const uploadResponse = await fetch(`${BASE_URL}/upload`, {
+                    method: 'POST',
                     headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'multipart/form-data',
+                        'Authorization': `Bearer ${token}`
+                        // Explicitly NOT setting Content-Type so fetch auto-generates the multipart boundary
                     },
-                    transformRequest: (data, headers) => {
-                        return data; // Prevents Axios from breaking the FormData boundary (which crashes Android)
-                    },
+                    body: formData,
                 });
+
+                if (!uploadResponse.ok) {
+                    throw new Error('Failed to upload image to the server');
+                }
+                
+                const uploadedPath = await uploadResponse.json();
                 imagePath = uploadedPath;
             }
 

@@ -8,6 +8,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { getStorageItemAsync } from '../utils/storage';
 
 const ClaimScreen = ({ route, navigation }) => {
     const { item } = route.params;
@@ -63,12 +64,24 @@ const ClaimScreen = ({ route, navigation }) => {
                     });
                 }
 
-                const { data } = await api.post('/upload', formData, {
+                const token = await getStorageItemAsync('userToken');
+                const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+                const uploadResponse = await fetch(`${BASE_URL}/upload`, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        'Authorization': `Bearer ${token}`
+                        // Explicitly NOT setting Content-Type so fetch auto-generates the multipart boundary
                     },
+                    body: formData,
                 });
-                proofImagePath = data;
+
+                if (!uploadResponse.ok) {
+                    throw new Error('Failed to upload proof image to the server');
+                }
+                
+                const uploadedPath = await uploadResponse.json();
+                proofImagePath = uploadedPath;
             }
 
             // 2. Submit Claim
