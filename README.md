@@ -1,3 +1,5 @@
+![Lost Guard Banner](./frontend/assets/lostguardbanner.png)
+
 # 🛡️ Lost Guard - Advanced University Lost & Found App
 
 **Lost Guard** is a premium, campus-aware full-stack platform designed to reconnect students and staff with their lost belongings through intelligent matching, secure blind-question verification, and real-time community trust.
