@@ -25,6 +25,7 @@
     "expo-font": "latest",
     "expo-image-picker": "~17.0.10",
     "expo-linear-gradient": "~15.0.8",
+    "expo-secure-store": "~16.0.2",
     "expo-status-bar": "~3.0.9",
     "lucide-react-native": "^1.7.0",
     "picomatch": "latest",
