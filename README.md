@@ -120,7 +120,7 @@ The system utilizes a structured NoSQL schema for high flexibility and performan
 The application is deployed across a high-performance cloud infrastructure, fully supporting cross-platform access:
 
 - **Frontend (Mobile)**: **Expo Cloud (EAS)**. OTA (Over-The-Air) deployment and seamless updates configured via GitHub Actions.
-- **Frontend (Web App)**: **DigitalOcean App Platform**. The project is explicitly configured with `react-native-web` to compile into a highly optimized, responsive Single Page Application (SPA). Web-specific APIs, such as standard `localStorage` security fallbacks and native `Blob` file uploads, ensure a 100% bug-free desktop experience. 
+- **Frontend (Web App)**: **DigitalOcean App Platform**. The project is explicitly configured with `react-native-web` to compile into a highly optimized, responsive Single Page Application (SPA). Web-specific APIs, such as standard `localStorage` security fallbacks and native `Blob` file uploads, ensure a 100% bug-free desktop experience.
 - **Backend API**: **Heroku PaaS**. Running the stateless Node.js Express server.
 - **Database**: **MongoDB Atlas**. Managed cloud database with deep indexing for search.
 - **Storage**: **Cloudinary**. Optimized image transformations and secure file hosting.
