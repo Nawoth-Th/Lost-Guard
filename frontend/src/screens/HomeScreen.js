@@ -140,6 +140,12 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.headerActions}>
                     <TouchableOpacity 
                         style={styles.actionButton}
+                        onPress={() => navigation.navigate('Profile')}
+                    >
+                        <User color={Theme.colors.text} size={22} />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.actionButton}
                         onPress={() => navigation.navigate('Leaderboard')}
                     >
                         <Trophy color="#FBBF24" size={20} />

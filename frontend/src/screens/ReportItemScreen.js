@@ -84,17 +84,21 @@ const ReportItemScreen = ({ navigation }) => {
             if (image) {
                 const formData = new FormData();
                 const uriParts = image.uri.split('.');
-                const fileType = uriParts[uriParts.length - 1];
+                const fileType = uriParts[uriParts.length - 1] || 'jpeg';
 
                 formData.append('image', {
-                    uri: image.uri,
+                    uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
                     name: `photo.${fileType}`,
                     type: `image/${fileType}`,
                 });
 
                 const { data: uploadedPath } = await api.post('/upload', formData, {
                     headers: {
+                        'Accept': 'application/json',
                         'Content-Type': 'multipart/form-data',
+                    },
+                    transformRequest: (data, headers) => {
+                        return data; // Prevents Axios from breaking the FormData boundary (which crashes Android)
                     },
                 });
                 imagePath = uploadedPath;
