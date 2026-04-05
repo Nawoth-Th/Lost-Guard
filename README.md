@@ -10,6 +10,7 @@
 ![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Heroku](https://img.shields.io/badge/Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white)
+![DigitalOcean](https://img.shields.io/badge/DigitalOcean-%230167ff.svg?style=for-the-badge&logo=digitalOcean&logoColor=white)
 
 ---
 
@@ -116,13 +117,13 @@ The system utilizes a structured NoSQL schema for high flexibility and performan
 
 ## 🌐 Deployment Architecture
 
-The application is deployed across a high-performance cloud infrastructure:
+The application is deployed across a high-performance cloud infrastructure, fully supporting cross-platform access:
 
-- **Frontend**: **Expo Cloud (EAS)**. Deployment and updates handled via EAS 24/7 for the mobile app.
-- **Web App**: **Expo Web Preview**. Accessible via browser for desktop users.
-- **Backend**: **Heroku PaaS**. Running the Node.js Express API.
-- **Database**: **MongoDB Atlas**. Managed cloud database with indexing for search.
-- **Storage**: **Cloudinary**. Optimized image transformations and delivery.
+- **Frontend (Mobile)**: **Expo Cloud (EAS)**. OTA (Over-The-Air) deployment and seamless updates configured via GitHub Actions.
+- **Frontend (Web App)**: **DigitalOcean App Platform**. The project is explicitly configured with `react-native-web` to compile into a highly optimized, responsive Single Page Application (SPA). Web-specific APIs, such as standard `localStorage` security fallbacks and native `Blob` file uploads, ensure a 100% bug-free desktop experience. 
+- **Backend API**: **Heroku PaaS**. Running the stateless Node.js Express server.
+- **Database**: **MongoDB Atlas**. Managed cloud database with deep indexing for search.
+- **Storage**: **Cloudinary**. Optimized image transformations and secure file hosting.
 
 ---
 
@@ -134,11 +135,12 @@ The application is deployed across a high-performance cloud infrastructure:
 2. Configure `.env` with Mongo, JWT, Cloudinary, and SMTP keys.
 3. `pnpm start`
 
-### **Frontend Setup**
+### **Frontend Setup (Mobile & Web)**
 
 1. `cd frontend` && `pnpm install`
 2. Configure `.env` with `EXPO_PUBLIC_API_URL` pointing to Heroku.
-3. `pnpm start`
+3. For local development: `pnpm start` (press `w` to open the Web App in your browser).
+4. For Production Web Build: `npx expo export` (Requires DigitalOcean or static hosting of the `dist/` directory).
 
 ---
 
