@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View, TouchableOpacity } from 'react-native';
 import Theme from '../constants/Theme';
 
-const GlassInput = ({ style, ...props }) => {
+const GlassInput = ({ style, rightIcon, rightIconOnPress, ...props }) => {
     return (
         <View style={styles.container}>
             <TextInput
@@ -10,6 +10,11 @@ const GlassInput = ({ style, ...props }) => {
                 placeholderTextColor={Theme.colors.textMuted}
                 {...props}
             />
+            {rightIcon && (
+                <TouchableOpacity onPress={rightIconOnPress} style={styles.iconContainer}>
+                    {rightIcon}
+                </TouchableOpacity>
+            )}
         </View>
     );
 };
@@ -23,13 +28,18 @@ const styles = StyleSheet.create({
         borderColor: Theme.colors.glassBorder,
         marginBottom: Theme.spacing.m,
         paddingHorizontal: Theme.spacing.m,
-        paddingVertical: Theme.spacing.s,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     input: {
         color: Theme.colors.text,
         fontSize: Theme.fontSizes.m,
         height: 48,
+        flex: 1,
     },
+    iconContainer: {
+        padding: 8,
+    }
 });
 
 export default GlassInput;

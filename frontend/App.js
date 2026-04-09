@@ -22,6 +22,7 @@ import MyClaimsScreen from './src/screens/MyClaimsScreen';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
+import ArchivesScreen from './src/screens/ArchivesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +50,7 @@ function AppStack() {
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} /> 
             <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+            <Stack.Screen name="Archives" component={ArchivesScreen} />
         </Stack.Navigator>
     );
 }

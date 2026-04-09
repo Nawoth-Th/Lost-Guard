@@ -4,17 +4,30 @@ const {
     authUser, 
     getUserProfile, 
     updateUserProfile,
-    getLeaderboard 
+    getLeaderboard,
+    getUsers,
+    deleteUser,
+    getUserById,
+    updateUser
 } = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.post('/', registerUser);
+router.route('/')
+    .post(registerUser)
+    .get(protect, admin, getUsers);
+
 router.post('/login', authUser);
 router.get('/leaderboard', getLeaderboard);
+
 router.route('/profile')
     .get(protect, getUserProfile)
     .put(protect, updateUserProfile);
+
+router.route('/:id')
+    .get(protect, admin, getUserById)
+    .put(protect, admin, updateUser)
+    .delete(protect, admin, deleteUser);
 
 module.exports = router;

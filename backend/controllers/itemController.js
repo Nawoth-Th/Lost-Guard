@@ -312,15 +312,51 @@ const getItemStatusLogs = async (req, res) => {
     }
 };
 
-// @desc    Get items reported by the logged-in user
+// @desc    Get items reported by the logged-in user (Active)
 // @route   GET /api/items/myitems
 // @access  Private
 const getMyItems = async (req, res) => {
     try {
-        const items = await Item.find({ user: req.user._id }).sort({ createdAt: -1 });
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        const items = await Item.find({ 
+            user: req.user._id,
+            $or: [
+                { status: { $nin: ['Recovered', 'Closed'] } },
+                { status: { $in: ['Recovered', 'Closed'] }, updatedAt: { $gt: oneHourAgo } }
+            ]
+        }).sort({ createdAt: -1 });
         res.json(items);
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Get archived items for the logged-in user
+// @route   GET /api/items/archives
+// @access  Private
+const getArchivedItems = async (req, res) => {
+    try {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        const items = await Item.find({ 
+            user: req.user._id,
+            status: { $in: ['Recovered', 'Closed'] },
+            updatedAt: { $lte: oneHourAgo }
+        }).sort({ updatedAt: -1 });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Get user items by ID (Admin)
+// @route   GET /api/items/user/:userId
+// @access  Private/Admin
+const getUserItems = async (req, res) => {
+    try {
+        const items = await Item.find({ user: req.params.userId }).sort({ createdAt: -1 });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error fetching user items' });
     }
 };
 
@@ -332,6 +368,8 @@ module.exports = {
     deleteItem,
     getMatchingItems,
     getMyItems,
+    getArchivedItems,
+    getUserItems,
     getItemStatusLogs,
     updateItemHub
 };

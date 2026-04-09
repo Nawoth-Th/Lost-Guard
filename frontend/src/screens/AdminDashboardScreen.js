@@ -13,16 +13,21 @@ const AdminDashboardScreen = ({ navigation }) => {
     const [claims, setClaims] = useState([]);
     const [categories, setCategories] = useState([]);
     const [locations, setLocations] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [showUserItemsModal, setShowUserItemsModal] = useState(false);
+    const [showUserEditModal, setShowUserEditModal] = useState(false);
     const [modalType, setModalType] = useState(''); // 'category' or 'location'
     const [editItem, setEditItem] = useState(null);
+    const [selectedUserItems, setSelectedUserItems] = useState([]);
 
     // Form states
     const [catName, setCatName] = useState('');
     const [locName, setLocName] = useState('');
     const [locBlock, setLocBlock] = useState('');
+    const [editUserForm, setEditUserForm] = useState({ name: '', email: '', isAdmin: false });
 
     const fetchData = async () => {
         setLoading(true);
@@ -36,6 +41,9 @@ const AdminDashboardScreen = ({ navigation }) => {
             } else if (activeTab === 'Locations') {
                 const { data } = await api.get('/locations');
                 setLocations(data);
+            } else if (activeTab === 'Users') {
+                const { data } = await api.get('/users');
+                setUsers(data);
             }
         } catch (error) {
             console.error(`Fetch ${activeTab} Error:`, error.message);
@@ -101,6 +109,67 @@ const AdminDashboardScreen = ({ navigation }) => {
                         fetchData();
                     } catch (error) {
                         Alert.alert('Error', 'Failed to delete.');
+                    }
+                }}
+            ]
+        );
+    };
+
+    const handleDeleteUser = async (id) => {
+        Alert.alert(
+            "Confirm Delete",
+            "Are you sure you want to delete this user and all their listings? This action is irreversible.",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", style: "destructive", onPress: async () => {
+                    try {
+                        await api.delete(`/users/${id}`);
+                        fetchData();
+                    } catch (error) {
+                        Alert.alert('Error', 'Failed to delete user.');
+                    }
+                }}
+            ]
+        );
+    };
+
+    const handleSaveUser = async () => {
+        try {
+            await api.put(`/users/${editItem._id}`, editUserForm);
+            setShowUserEditModal(false);
+            fetchData();
+            Alert.alert('Success', 'User updated successfully.');
+        } catch (error) {
+            Alert.alert('Error', 'Failed to update user.');
+        }
+    };
+
+    const handleViewUserItems = async (userId) => {
+        setLoading(true);
+        try {
+            const { data } = await api.get(`/items/user/${userId}`);
+            setSelectedUserItems(data);
+            setShowUserItemsModal(true);
+        } catch (error) {
+            Alert.alert('Error', 'Failed to fetch user items.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteUserItem = async (itemId) => {
+        Alert.alert(
+            "Confirm Delete",
+            "Are you sure you want to delete this listing?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", style: "destructive", onPress: async () => {
+                    try {
+                        await api.delete(`/items/${itemId}`);
+                        setSelectedUserItems(prev => prev.filter(i => i._id !== itemId));
+                        Alert.alert('Success', 'Item deleted.');
+                    } catch (error) {
+                        Alert.alert('Error', 'Failed to delete item.');
                     }
                 }}
             ]
@@ -211,6 +280,47 @@ const AdminDashboardScreen = ({ navigation }) => {
         </GlassCard>
     );
 
+    const renderUser = ({ item: user }) => (
+        <GlassCard style={styles.metaCard}>
+            <View style={styles.metaInfo}>
+                <View style={styles.avatarMini}>
+                    <User size={16} color={Theme.colors.primary} />
+                </View>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                    <Text style={styles.metaTitle} numberOfLines={1}>{user.name} {user.isAdmin ? '(Admin)' : ''}</Text>
+                    <Text style={styles.metaSub} numberOfLines={1}>{user.email}</Text>
+                </View>
+            </View>
+            <View style={styles.metaActions}>
+                <TouchableOpacity onPress={() => handleViewUserItems(user._id)} style={styles.actionBtnIcon}>
+                    <Package size={18} color={Theme.colors.accent} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+                    setEditItem(user);
+                    setEditUserForm({ name: user.name, email: user.email, isAdmin: user.isAdmin });
+                    setShowUserEditModal(true);
+                }} style={styles.actionBtnIcon}>
+                    <Edit2 size={18} color={Theme.colors.textMuted} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteUser(user._id)} style={styles.actionBtnIcon}>
+                    <Trash2 size={18} color="#ef4444" />
+                </TouchableOpacity>
+            </View>
+        </GlassCard>
+    );
+
+    const renderUserItem = ({ item }) => (
+        <View style={styles.userItemRow}>
+            <View style={{ flex: 1 }}>
+                <Text style={styles.userItemTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={styles.metaText}>{item.type} • {item.status}</Text>
+            </View>
+            <TouchableOpacity onPress={() => handleDeleteUserItem(item._id)} style={{ padding: 4 }}>
+                <Trash2 size={18} color="#ef4444" />
+            </TouchableOpacity>
+        </View>
+    );
+
     return (
         <View style={styles.container}>
             <LinearGradient
@@ -243,16 +353,22 @@ const AdminDashboardScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.tabs}>
-                    {['Claims', 'Categories', 'Locations'].map((tab) => (
-                        <TouchableOpacity 
-                            key={tab}
-                            style={[styles.tab, activeTab === tab && styles.activeTab]}
-                            onPress={() => setActiveTab(tab)}
-                        >
-                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
-                        </TouchableOpacity>
-                    ))}
+                <View style={styles.tabsWrap}>
+                    <FlatList
+                        horizontal
+                        data={['Claims', 'Categories', 'Locations', 'Users']}
+                        keyExtractor={item => item}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.tabs}
+                        renderItem={({ item: tab }) => (
+                            <TouchableOpacity 
+                                style={[styles.tab, activeTab === tab && styles.activeTab]}
+                                onPress={() => setActiveTab(tab)}
+                            >
+                                <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+                            </TouchableOpacity>
+                        )}
+                    />
                 </View>
 
                 {loading ? (
@@ -261,8 +377,8 @@ const AdminDashboardScreen = ({ navigation }) => {
                     </View>
                 ) : (
                     <FlatList
-                        data={activeTab === 'Claims' ? claims : activeTab === 'Categories' ? categories : locations}
-                        renderItem={activeTab === 'Claims' ? renderClaim : activeTab === 'Categories' ? renderCategory : renderLocation}
+                        data={activeTab === 'Claims' ? claims : activeTab === 'Categories' ? categories : activeTab === 'Locations' ? locations : users}
+                        renderItem={activeTab === 'Claims' ? renderClaim : activeTab === 'Categories' ? renderCategory : activeTab === 'Locations' ? renderLocation : renderUser}
                         keyExtractor={item => item._id}
                         contentContainerStyle={styles.listContent}
                         refreshControl={
@@ -320,6 +436,77 @@ const AdminDashboardScreen = ({ navigation }) => {
                                     <Text style={styles.saveText}>Save</Text>
                                 </TouchableOpacity>
                             </View>
+                        </GlassCard>
+                    </View>
+                )}
+
+                {/* Edit User Modal */}
+                {showUserEditModal && (
+                    <View style={styles.modalOverlay}>
+                        <GlassCard style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Edit User</Text>
+                            
+                            <GlassInput
+                                placeholder="User Name"
+                                value={editUserForm.name}
+                                onChangeText={(val) => setEditUserForm({ ...editUserForm, name: val })}
+                            />
+                            <GlassInput
+                                placeholder="Email Address"
+                                value={editUserForm.email}
+                                onChangeText={(val) => setEditUserForm({ ...editUserForm, email: val })}
+                                keyboardType="email-address"
+                            />
+
+                            <View style={styles.switchRow}>
+                                <Text style={styles.switchLabel}>Is Admin?</Text>
+                                <TouchableOpacity 
+                                    style={[styles.switchBtn, editUserForm.isAdmin && styles.switchBtnActive]}
+                                    onPress={() => setEditUserForm({ ...editUserForm, isAdmin: !editUserForm.isAdmin })}
+                                >
+                                    <View style={[styles.switchKnob, editUserForm.isAdmin && styles.switchKnobActive]} />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity 
+                                    style={[styles.modalBtn, styles.cancelBtn]} 
+                                    onPress={() => setShowUserEditModal(false)}
+                                >
+                                    <Text style={styles.cancelText}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={[styles.modalBtn, styles.saveBtn]} 
+                                    onPress={handleSaveUser}
+                                >
+                                    <Text style={styles.saveText}>Save</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </GlassCard>
+                    </View>
+                )}
+
+                {/* User Items Modal */}
+                {showUserItemsModal && (
+                    <View style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { maxHeight: '80%' }]}>
+                            <View style={styles.modalHeaderRow}>
+                                <Text style={styles.modalTitle}>User Listings</Text>
+                                <TouchableOpacity onPress={() => setShowUserItemsModal(false)}>
+                                    <XCircle size={24} color={Theme.colors.textMuted} />
+                                </TouchableOpacity>
+                            </View>
+
+                            <FlatList
+                                data={selectedUserItems}
+                                renderItem={renderUserItem}
+                                keyExtractor={i => i._id}
+                                style={{ marginTop: 10 }}
+                                showsVerticalScrollIndicator={false}
+                                ListEmptyComponent={
+                                    <Text style={styles.emptySubText}>This user has no active listings.</Text>
+                                }
+                            />
                         </GlassCard>
                     </View>
                 )}
@@ -587,6 +774,64 @@ const styles = StyleSheet.create({
     saveText: {
         color: Theme.colors.text,
         fontWeight: 'bold',
+    },
+    tabsWrap: {
+        marginBottom: 12,
+    },
+    actionBtnIcon: {
+        padding: 4,
+    },
+    userItemRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: Theme.colors.glassBorder,
+    },
+    userItemTitle: {
+        color: Theme.colors.text,
+        fontSize: 15,
+        fontWeight: 'bold',
+        marginBottom: 4,
+    },
+    modalHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    switchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 12,
+        marginBottom: 20,
+        paddingHorizontal: 4,
+    },
+    switchLabel: {
+        color: Theme.colors.text,
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    switchBtn: {
+        width: 50,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        justifyContent: 'center',
+        paddingHorizontal: 2,
+    },
+    switchBtnActive: {
+        backgroundColor: Theme.colors.primary,
+    },
+    switchKnob: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#fff',
+    },
+    switchKnobActive: {
+        transform: [{ translateX: 22 }],
     }
 });
 

@@ -7,6 +7,8 @@ const {
     deleteItem,
     getMatchingItems,
     getMyItems,
+    getArchivedItems,
+    getUserItems,
     getItemStatusLogs,
     updateItemHub
 } = require('../controllers/itemController');
@@ -20,6 +22,12 @@ router.route('/')
 
 router.route('/myitems')
     .get(protect, getMyItems);
+
+router.route('/archives')
+    .get(protect, getArchivedItems);
+
+router.route('/user/:userId')
+    .get(protect, admin, getUserItems);
 
 router.route('/:id')
     .get(getItemById)

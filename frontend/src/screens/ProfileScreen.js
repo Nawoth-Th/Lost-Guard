@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, User, Package, ClipboardList, ShieldCheck, LogOut, Settings, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, User, Package, ClipboardList, ShieldCheck, LogOut, Settings, ChevronRight, Archive } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
@@ -82,6 +82,13 @@ const ProfileScreen = ({ navigation }) => {
                             title="My Reported Items" 
                             subtitle="Track items you've posted"
                             onPress={() => navigation.navigate('MyItems')}
+                            color={Theme.colors.primary}
+                        />
+                        <MenuItem 
+                            icon={Archive} 
+                            title="Archives" 
+                            subtitle="View past and recovered items"
+                            onPress={() => navigation.navigate('Archives')}
                             color={Theme.colors.primary}
                         />
                         <MenuItem 

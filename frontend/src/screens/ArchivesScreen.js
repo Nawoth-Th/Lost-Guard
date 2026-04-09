@@ -2,24 +2,24 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Trash2, MapPin, Clock, Package, CheckCircle } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Clock, Archive as ArchiveIcon } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
 import { getImageUrl } from '../utils/imageHelper';
 
-const MyItemsScreen = ({ navigation }) => {
+const ArchivesScreen = ({ navigation }) => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const fetchMyItems = async () => {
+    const fetchArchives = async () => {
         try {
-            const { data } = await api.get('/items/myitems');
+            const { data } = await api.get('/items/archives');
             setItems(data);
         } catch (error) {
-            console.error('Fetch My Items Error:', error.message);
-            Alert.alert('Error', 'Failed to load your reports.');
+            console.error('Fetch Archives Error:', error.message);
+            Alert.alert('Error', 'Failed to load your archives.');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -27,57 +27,13 @@ const MyItemsScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-        fetchMyItems();
+        fetchArchives();
     }, []);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        fetchMyItems();
+        fetchArchives();
     }, []);
-
-    const handleDelete = (id) => {
-        Alert.alert(
-            "Delete Report",
-            "Are you sure you want to remove this report? This action cannot be undone.",
-            [
-                { text: "Cancel", style: "cancel" },
-                { 
-                    text: "Delete", 
-                    onPress: async () => {
-                        try {
-                            await api.delete(`/items/${id}`);
-                            setItems(prev => prev.filter(item => item._id !== id));
-                        } catch (error) {
-                            Alert.alert('Error', 'Failed to delete item.');
-                        }
-                    }, 
-                    style: "destructive" 
-                }
-            ]
-        );
-    };
-
-    const handleMarkAsFound = (id) => {
-        Alert.alert(
-            "Mark as Found",
-            "Are you sure you want to mark this item as found? It will appear in your Archives after 1 hour.",
-            [
-                { text: "Cancel", style: "cancel" },
-                { 
-                    text: "Confirm", 
-                    onPress: async () => {
-                        try {
-                            await api.put(`/items/${id}/status`, { status: 'Recovered' });
-                            setItems(prev => prev.map(item => item._id === id ? { ...item, status: 'Recovered', updatedAt: new Date().toISOString() } : item));
-                            Alert.alert('Success', 'Item marked as Found.');
-                        } catch (error) {
-                            Alert.alert('Error', 'Failed to update item status.');
-                        }
-                    }
-                }
-            ]
-        );
-    };
 
     const renderItem = ({ item }) => {
         const imageUrl = getImageUrl(item.image);
@@ -94,7 +50,7 @@ const MyItemsScreen = ({ navigation }) => {
                                 <Image source={{ uri: imageUrl }} style={styles.itemImage} />
                             ) : (
                                 <View style={styles.imagePlaceholder}>
-                                    <Package size={24} color={Theme.colors.textMuted} />
+                                    <ArchiveIcon size={24} color={Theme.colors.textMuted} />
                                 </View>
                             )}
                             <View style={[styles.typeBadge, { backgroundColor: item.type === 'Lost' ? '#ef4444' : '#10b981' }]}>
@@ -110,30 +66,14 @@ const MyItemsScreen = ({ navigation }) => {
                             </View>
                             <View style={styles.metaRow}>
                                 <Clock size={12} color={Theme.colors.textMuted} />
-                                <Text style={styles.metaText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+                                <Text style={styles.metaText}>{new Date(item.updatedAt).toLocaleDateString()}</Text>
                             </View>
                             
                             <View style={styles.bottomRow}>
-                                <View style={[styles.statusBadge, { borderColor: item.status === 'Recovered' ? '#10b981' : Theme.colors.primary }]}>
-                                    <Text style={[styles.statusText, { color: item.status === 'Recovered' ? '#10b981' : Theme.colors.primary }]}>
+                                <View style={[styles.statusBadge, { borderColor: Theme.colors.textMuted }]}>
+                                    <Text style={[styles.statusText, { color: Theme.colors.textMuted }]}>
                                         {item.status}
                                     </Text>
-                                </View>
-                                <View style={styles.actions}>
-                                    {item.type === 'Lost' && item.status === 'Pending' && (
-                                        <TouchableOpacity 
-                                            style={styles.actionBtn}
-                                            onPress={() => handleMarkAsFound(item._id)}
-                                        >
-                                            <CheckCircle size={18} color="#10b981" />
-                                        </TouchableOpacity>
-                                    )}
-                                    <TouchableOpacity 
-                                        style={styles.actionBtn}
-                                        onPress={() => handleDelete(item._id)}
-                                    >
-                                        <Trash2 size={18} color="#ef4444" />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
@@ -155,7 +95,7 @@ const MyItemsScreen = ({ navigation }) => {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <ChevronLeft color={Theme.colors.text} size={24} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>My Reports</Text>
+                    <Text style={styles.headerTitle}>Archives</Text>
                     <View style={{ width: 44 }} />
                 </View>
 
@@ -174,9 +114,9 @@ const MyItemsScreen = ({ navigation }) => {
                         }
                         ListEmptyComponent={
                             <View style={styles.emptyContainer}>
-                                <Package color={Theme.colors.textMuted} size={48} />
-                                <Text style={styles.emptyText}>No reports yet</Text>
-                                <Text style={styles.emptySubText}>Items you report as lost or found will appear here.</Text>
+                                <ArchiveIcon color={Theme.colors.textMuted} size={48} />
+                                <Text style={styles.emptyText}>No archives</Text>
+                                <Text style={styles.emptySubText}>Your historically found and closed reports will appear here after 1 hour.</Text>
                             </View>
                         }
                     />
@@ -291,14 +231,6 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontWeight: 'bold',
     },
-    actions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    actionBtn: {
-        padding: 4,
-    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -317,10 +249,12 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     emptySubText: {
+        textAlign: 'center',
         color: Theme.colors.textMuted,
         fontSize: 14,
         marginTop: 8,
+        paddingHorizontal: 32,
     }
 });
 
-export default MyItemsScreen;
+export default ArchivesScreen;

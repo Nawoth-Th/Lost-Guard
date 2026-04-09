@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
@@ -10,6 +11,7 @@ const RegisterScreen = ({ navigation }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -72,13 +74,15 @@ const RegisterScreen = ({ navigation }) => {
                     placeholder="Password"
                     value={password}
                     onChangeText={setPassword}
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
+                    rightIcon={showPassword ? <EyeOff size={20} color={Theme.colors.textMuted} /> : <Eye size={20} color={Theme.colors.textMuted} />}
+                    rightIconOnPress={() => setShowPassword(!showPassword)}
                 />
                 <GlassInput
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
                 />
 
                 <TouchableOpacity 
