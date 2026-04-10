@@ -24,7 +24,13 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import ArchivesScreen from './src/screens/ArchivesScreen';
 
+// Components
+import FloatingHeader from './src/components/FloatingHeader';
+import FloatingBottomMenu from './src/components/FloatingBottomMenu';
+import { View, StyleSheet } from 'react-native';
+
 const Stack = createNativeStackNavigator();
+const navigationRef = React.createRef();
 
 function AuthStack() {
     return (
@@ -55,16 +61,65 @@ function AppStack() {
     );
 }
 
+function AppContent({ currentRoute }) {
+    const { userInfo } = React.useContext(AuthContext);
+    
+    const hideMenuOn = ['ReportItem', 'Chat', 'Claim', 'ItemDetail', 'Settings'];
+    const showMenu = !hideMenuOn.includes(currentRoute);
+
+    const getTitle = (route) => {
+        switch(route) {
+            case 'Home': return 'Lost Guard';
+            case 'Profile': return 'My Profile';
+            case 'Leaderboard': return 'Leaderboard';
+            case 'Inbox': return 'Inbox';
+            case 'Settings': return 'Settings';
+            case 'MyItems': return 'My Items';
+            case 'MyClaims': return 'My Claims';
+            case 'Archives': return 'Archives';
+            case 'ReportItem': return 'Post New';
+            default: return 'Lost Guard';
+        }
+    };
+
+    const isMainScreen = ['Home', 'Profile', 'Leaderboard', 'Inbox'].includes(currentRoute);
+    const hidePlusOn = ['AdminDashboard', 'MyClaims', 'Claim', 'ReportItem'];
+    const showPlus = !hidePlusOn.includes(currentRoute);
+
+    return (
+        <View style={{ flex: 1 }}>
+            <AppStack />
+            {/* These components are floating and global */}
+            <FloatingHeader 
+                title={getTitle(currentRoute)}
+                greeting={currentRoute === 'Home' ? `Hey ${userInfo?.name || 'there'}!` : null}
+                showBack={!isMainScreen}
+                showPlus={showPlus}
+                onBackPress={() => navigationRef.current?.goBack()}
+                onPlusPress={() => navigationRef.current?.navigate('ReportItem')}
+            />
+            {showMenu && <FloatingBottomMenu navigation={navigationRef.current} />}
+        </View>
+    );
+}
+
 function Navigation() {
     const { userToken, isLoading } = React.useContext(AuthContext);
+    const [currentRoute, setCurrentRoute] = React.useState('Home');
 
     if (isLoading) {
         return null;
     }
 
     return (
-        <NavigationContainer>
-            {userToken ? <AppStack /> : <AuthStack />}
+        <NavigationContainer 
+            ref={navigationRef}
+            onStateChange={() => {
+                const routeName = navigationRef.current?.getCurrentRoute()?.name;
+                setCurrentRoute(routeName);
+            }}
+        >
+            {userToken ? <AppContent currentRoute={currentRoute} /> : <AuthStack />}
         </NavigationContainer>
     );
 }

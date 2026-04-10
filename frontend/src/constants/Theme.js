@@ -6,12 +6,14 @@ const Theme = {
         accent: '#8b5cf6', // Violet
         text: '#ffffff',
         textMuted: '#94a3b8',
-        glass: 'rgba(255, 255, 255, 0.2)',
+        glass: 'rgba(255, 255, 255, 0.1)',
         glassBorder: 'rgba(255, 255, 255, 0.15)',
         glassDark: 'rgba(0, 0, 0, 0.9)',
         modalBg: 'rgba(15, 15, 20, 0.95)',
         glowPurple: '#a855f7',
         glowCyan: '#22d3ee',
+        purpleGradient: ['#6366f1', '#a855f7'],
+        menuBg: '#4f46e5',
     },
     spacing: {
         s: 8,

@@ -69,13 +69,7 @@ const LeaderboardScreen = ({ navigation }) => {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <ChevronLeft color={Theme.colors.text} size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Leaderboard</Text>
-                    <View style={{ width: 44 }} />
-                </View>
+                <View style={{ height: 100 }} /> {/* Spacer for global FloatingHeader */}
 
                 <View style={styles.heroSection}>
                     <Text style={styles.heroTitle}>Top Guardians</Text>
@@ -146,7 +140,7 @@ const styles = StyleSheet.create({
     },
     listContent: {
         padding: Theme.spacing.l,
-        paddingBottom: 40,
+        paddingBottom: 120, // Space for bottom menu
     },
     userCard: {
         flexDirection: 'row',

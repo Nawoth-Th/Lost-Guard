@@ -132,36 +132,13 @@ const HomeScreen = ({ navigation }) => {
                 style={StyleSheet.absoluteFill}
             />
 
+            {/* Global FloatingHeader handles greeting and Add Item now */}
+            
+            <View style={{ height: 110 }} /> {/* Spacer for FloatingHeader */}
+
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.greeting}>Hey {userInfo?.name || 'there'}!</Text>
-                    <Text style={styles.headerTitle}>Lost Guard</Text>
-                </View>
-                <View style={styles.headerActions}>
-                    <TouchableOpacity 
-                        style={styles.actionButton}
-                        onPress={() => navigation.navigate('Profile')}
-                    >
-                        <User color={Theme.colors.text} size={22} />
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={styles.actionButton}
-                        onPress={() => navigation.navigate('Leaderboard')}
-                    >
-                        <Trophy color="#FBBF24" size={20} />
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={styles.actionButton}
-                        onPress={() => navigation.navigate('Inbox')}
-                    >
-                        <MessageCircle color={Theme.colors.text} size={22} />
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[styles.actionButton, showSearch && styles.actionButtonActive]}
-                        onPress={() => setShowSearch(!showSearch)}
-                    >
-                        <Search color={showSearch ? Theme.colors.primary : Theme.colors.text} size={22} />
-                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Lost & Found Items</Text>
                 </View>
             </View>
 
@@ -225,17 +202,7 @@ const HomeScreen = ({ navigation }) => {
             />
 
 
-            <TouchableOpacity 
-                style={styles.fab}
-                onPress={() => navigation.navigate('ReportItem')}
-            >
-                <LinearGradient
-                    colors={[Theme.colors.primary, Theme.colors.accent]}
-                    style={styles.fabGradient}
-                >
-                    <Plus color="#fff" size={28} />
-                </LinearGradient>
-            </TouchableOpacity>
+            {/* FloatingBottomMenu is global now */}
         </SafeAreaView>
     );
 };
@@ -316,7 +283,7 @@ const styles = StyleSheet.create({
     },
     listContent: {
         paddingHorizontal: Theme.spacing.l,
-        paddingBottom: 100,
+        paddingBottom: 120, // More padding for floating menu
     },
     itemWrapper: {
         marginBottom: Theme.spacing.m,

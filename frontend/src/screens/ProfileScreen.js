@@ -44,16 +44,8 @@ const ProfileScreen = ({ navigation }) => {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <ChevronLeft color={Theme.colors.text} size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Profile</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.backButton}>
-                        <Settings color={Theme.colors.text} size={22} />
-                    </TouchableOpacity>
-                </View>
-
+                <View style={{ height: 100 }} /> {/* Spacer for global FloatingHeader */}
+                
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     {/* User Info Header */}
                     <View style={styles.userHeader}>
@@ -156,6 +148,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: Theme.spacing.l,
+        paddingBottom: 150, // Space for floating menu
     },
     userHeader: {
         alignItems: 'center',
