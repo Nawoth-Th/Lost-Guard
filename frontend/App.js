@@ -28,7 +28,7 @@ import ArchivesScreen from './src/screens/ArchivesScreen';
 import FloatingHeader from './src/components/FloatingHeader';
 import FloatingBottomMenu from './src/components/FloatingBottomMenu';
 import { View, StyleSheet, DeviceEventEmitter } from 'react-native';
-import { ShieldCheck } from 'lucide-react-native';
+import { ShieldCheck, Share2 } from 'lucide-react-native';
 
 const Stack = createNativeStackNavigator();
 const navigationRef = React.createRef();
@@ -78,7 +78,7 @@ function AppContent({ currentRoute }) {
             case 'MyItems': return 'My Items';
             case 'MyClaims': return 'My Claims';
             case 'Archives': return 'Archives';
-            case 'ReportItem': return 'Post New';
+            case 'ReportItem': return 'Report Item';
             case 'AdminDashboard': return 'Moderation';
             default: return 'Lost Guard';
         }
@@ -88,9 +88,14 @@ function AppContent({ currentRoute }) {
     const hidePlusOn = ['MyClaims', 'Claim', 'ReportItem'];
     const showPlus = !hidePlusOn.includes(currentRoute);
 
+    const hideHeaderOn = ['Chat'];
+    const showHeader = !hideHeaderOn.includes(currentRoute);
+
     const handlePlusPress = () => {
         if (currentRoute === 'AdminDashboard') {
             DeviceEventEmitter.emit('MODERATION_ADD');
+        } else if (currentRoute === 'ItemDetail') {
+            DeviceEventEmitter.emit('ITEM_SHARE');
         } else {
             navigationRef.current?.navigate('ReportItem');
         }
@@ -100,17 +105,21 @@ function AppContent({ currentRoute }) {
         <View style={{ flex: 1 }}>
             <AppStack />
             {/* These components are floating and global */}
-            <FloatingHeader 
-                title={getTitle(currentRoute)}
-                greeting={currentRoute === 'Home' ? `Hey ${userInfo?.name || 'there'}!` : null}
-                showBack={!isMainScreen}
-                showPlus={showPlus}
-                centerTitle={currentRoute === 'AdminDashboard'}
-                titleIcon={currentRoute === 'AdminDashboard' ? <ShieldCheck color="#FBBF24" size={20} /> : null}
-                plusVariant={currentRoute === 'AdminDashboard' ? 'dashboard' : 'premium'}
-                onBackPress={() => navigationRef.current?.goBack()}
-                onPlusPress={handlePlusPress}
-            />
+            {showHeader && (
+                <FloatingHeader 
+                    title={getTitle(currentRoute)}
+                    greeting={currentRoute === 'Home' ? `Hey ${userInfo?.name || 'there'}!` : null}
+                    showBack={!isMainScreen}
+                    showPlus={showPlus}
+                    centerTitle={currentRoute === 'AdminDashboard'}
+                    titleIcon={currentRoute === 'AdminDashboard' ? <ShieldCheck color="#FBBF24" size={20} /> : null}
+                    plusVariant={currentRoute === 'AdminDashboard' ? 'dashboard' : 'premium'}
+                    rightIcon={currentRoute === 'ItemDetail' ? <Share2 color={Theme.colors.text} size={20} /> : null}
+                    onBackPress={() => navigationRef.current?.goBack()}
+                    onPlusPress={handlePlusPress}
+                    onRightPress={handlePlusPress}
+                />
+            )}
             {showMenu && <FloatingBottomMenu navigation={navigationRef.current} />}
         </View>
     );

@@ -14,9 +14,13 @@ const FloatingHeader = ({
     showPlus = true,
     centerTitle = false,
     titleIcon = null,
-    plusVariant = 'premium'
+    plusVariant = 'premium',
+    rightIcon = null,
+    onRightPress = null
 }) => {
     const insets = useSafeAreaInsets();
+
+    const handleRightPress = onRightPress || onPlusPress;
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
@@ -47,10 +51,14 @@ const FloatingHeader = ({
                 
                 {/* Right Section */}
                 <View style={styles.rightContainer}>
-                    {showPlus ? (
+                    {rightIcon ? (
+                        <TouchableOpacity onPress={handleRightPress} style={styles.sideButton}>
+                            {rightIcon}
+                        </TouchableOpacity>
+                    ) : showPlus ? (
                         <TouchableOpacity 
                             style={[styles.plusButton, plusVariant === 'dashboard' && styles.dashboardPlusButton]}
-                            onPress={onPlusPress}
+                            onPress={handleRightPress}
                             activeOpacity={0.8}
                         >
                             {plusVariant === 'dashboard' ? (

@@ -110,13 +110,7 @@ const ClaimScreen = ({ route, navigation }) => {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-                        <ChevronLeft color={Theme.colors.text} size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Claim Item</Text>
-                    <View style={{ width: 44 }} />
-                </View>
+                <View style={{ height: 100 }} /> {/* Spacer for global FloatingHeader */}
 
                 <KeyboardAvoidingView 
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -233,7 +227,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: Theme.spacing.l,
-        paddingBottom: 40,
+        paddingBottom: 120, // Space for bottom menu
     },
     itemRef: {
         color: Theme.colors.primary,

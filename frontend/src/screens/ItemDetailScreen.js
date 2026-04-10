@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert, Image, ActivityIndicator, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert, Image, ActivityIndicator, FlatList, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2, History, ShieldCheck } from 'lucide-react-native';
@@ -69,6 +69,11 @@ const ItemDetailScreen = ({ route, navigation }) => {
     }, [id]);
 
     useEffect(() => {
+        const sub = DeviceEventEmitter.addListener('ITEM_SHARE', handleShare);
+        return () => sub.remove();
+    }, [item]);
+
+    useEffect(() => {
         if (item) {
             fetchStatusLogs();
         }
@@ -136,15 +141,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-                        <ChevronLeft color={Theme.colors.text} size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Item Details</Text>
-                    <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-                        <Share2 color={Theme.colors.text} size={20} />
-                    </TouchableOpacity>
-                </View>
+                <View style={{ height: 100 }} /> {/* Spacer for global FloatingHeader */}
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                     <View style={styles.imageContainer}>
