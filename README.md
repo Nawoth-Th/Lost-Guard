@@ -36,6 +36,14 @@ Campus locations, item categories, and location blocks are fully managed via the
 
 Items can be marked as **"Secured at Hub"** (e.g., Security Gate 1, Student Affairs). A shield badge on the item ensures the student that their item is safe and ready for pickup.
 
+### 🕰️ Auto-Archiving Timeline
+
+Prevents platform clutter. Once an item is successfully marked as recovered, it enters a 1-hour grace timeline before being automatically swept into a secure, read-only "Historical Archives" Vault accessible via the user's profile.
+
+### 🛡️ Infinite Admin Oversight
+
+Complete CRUD control over user networks. Administrators can intercept, edit, or delete platform users while actively pulling up and wiping out any specific listing attached to a targeted account natively from the dashboard.
+
 ---
 
 ## 🔄 System Workflows
@@ -82,7 +90,7 @@ The system utilizes a structured NoSQL schema for high flexibility and performan
 | User Type | Permissions | Description |
 | :--- | :--- | :--- |
 | **User** | Report, Search, Claim, Chat | General students seeking belongings. |
-| **Admin** | Metadata CRUD, Moderate Claims | Campus staff managing categories and hubs. |
+| **Admin** | User & Metadata CRUD, View/Wipe Listings, Moderate Claims | Campus staff governing the overarching platform. |
 | **Guardian** | Top Ranks, Verified Status | High-trust users with high recovery scores. |
 
 ---
