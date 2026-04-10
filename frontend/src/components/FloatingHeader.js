@@ -23,8 +23,8 @@ const FloatingHeader = ({
     const handleRightPress = onRightPress || onPlusPress;
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-            <View style={styles.content}>
+        <View style={[styles.container, { paddingTop: insets.top + 10 }]} pointerEvents="box-none">
+            <View style={styles.content} pointerEvents="box-none">
                 {/* Left Section */}
                 <View style={styles.leftContainer}>
                     {showBack ? (

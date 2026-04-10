@@ -28,6 +28,7 @@ import ArchivesScreen from './src/screens/ArchivesScreen';
 import FloatingHeader from './src/components/FloatingHeader';
 import FloatingBottomMenu from './src/components/FloatingBottomMenu';
 import { View, StyleSheet, DeviceEventEmitter } from 'react-native';
+import Theme from './src/constants/Theme';
 import { ShieldCheck, Share2 } from 'lucide-react-native';
 
 const Stack = createNativeStackNavigator();

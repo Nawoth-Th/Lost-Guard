@@ -116,7 +116,7 @@ const FloatingBottomMenu = ({ navigation }) => {
                 />
             )}
 
-            <View style={styles.menuWrapper}>
+            <View style={styles.menuWrapper} pointerEvents="box-none">
                 {/* Pop-up Items */}
                 {displayItems.map((item, index) => (
                     <Animated.View key={index} style={[styles.itemCircle, getItemStyle(index)]}>
