@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator, RefreshControl, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -57,6 +57,20 @@ const AdminDashboardScreen = ({ navigation }) => {
 
     useEffect(() => {
         fetchData();
+    }, [activeTab]);
+
+    useEffect(() => {
+        const sub = DeviceEventEmitter.addListener('MODERATION_ADD', () => {
+            if (activeTab === 'Categories' || activeTab === 'Locations') {
+                setModalType(activeTab === 'Categories' ? 'category' : 'location');
+                setEditItem(null);
+                setCatName('');
+                setLocName('');
+                setLocBlock('');
+                setShowModal(true);
+            }
+        });
+        return () => sub.remove();
     }, [activeTab]);
 
     const onRefresh = useCallback(() => {

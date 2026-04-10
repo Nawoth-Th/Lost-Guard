@@ -27,7 +27,8 @@ import ArchivesScreen from './src/screens/ArchivesScreen';
 // Components
 import FloatingHeader from './src/components/FloatingHeader';
 import FloatingBottomMenu from './src/components/FloatingBottomMenu';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, DeviceEventEmitter } from 'react-native';
+import { ShieldCheck } from 'lucide-react-native';
 
 const Stack = createNativeStackNavigator();
 const navigationRef = React.createRef();
@@ -78,13 +79,22 @@ function AppContent({ currentRoute }) {
             case 'MyClaims': return 'My Claims';
             case 'Archives': return 'Archives';
             case 'ReportItem': return 'Post New';
+            case 'AdminDashboard': return 'Moderation';
             default: return 'Lost Guard';
         }
     };
 
     const isMainScreen = ['Home', 'Profile', 'Leaderboard', 'Inbox'].includes(currentRoute);
-    const hidePlusOn = ['AdminDashboard', 'MyClaims', 'Claim', 'ReportItem'];
+    const hidePlusOn = ['MyClaims', 'Claim', 'ReportItem'];
     const showPlus = !hidePlusOn.includes(currentRoute);
+
+    const handlePlusPress = () => {
+        if (currentRoute === 'AdminDashboard') {
+            DeviceEventEmitter.emit('MODERATION_ADD');
+        } else {
+            navigationRef.current?.navigate('ReportItem');
+        }
+    };
 
     return (
         <View style={{ flex: 1 }}>
@@ -95,8 +105,11 @@ function AppContent({ currentRoute }) {
                 greeting={currentRoute === 'Home' ? `Hey ${userInfo?.name || 'there'}!` : null}
                 showBack={!isMainScreen}
                 showPlus={showPlus}
+                centerTitle={currentRoute === 'AdminDashboard'}
+                titleIcon={currentRoute === 'AdminDashboard' ? <ShieldCheck color="#FBBF24" size={20} /> : null}
+                plusVariant={currentRoute === 'AdminDashboard' ? 'dashboard' : 'premium'}
                 onBackPress={() => navigationRef.current?.goBack()}
-                onPlusPress={() => navigationRef.current?.navigate('ReportItem')}
+                onPlusPress={handlePlusPress}
             />
             {showMenu && <FloatingBottomMenu navigation={navigationRef.current} />}
         </View>
