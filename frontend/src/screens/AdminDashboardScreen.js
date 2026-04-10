@@ -330,29 +330,7 @@ const AdminDashboardScreen = ({ navigation }) => {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <ChevronLeft color={Theme.colors.text} size={24} />
-                    </TouchableOpacity>
-                    <View style={styles.titleContainer}>
-                        <ShieldCheck size={20} color="#FBBF24" />
-                        <Text style={styles.headerTitle}>Moderation</Text>
-                    </View>
-                    <TouchableOpacity 
-                        style={styles.addButton}
-                        onPress={() => {
-                            if (activeTab === 'Claims') return;
-                            setModalType(activeTab === 'Categories' ? 'category' : 'location');
-                            setEditItem(null);
-                            setCatName('');
-                            setLocName('');
-                            setLocBlock('');
-                            setShowModal(true);
-                        }}
-                    >
-                        {activeTab !== 'Claims' && <Plus color={Theme.colors.primary} size={24} />}
-                    </TouchableOpacity>
-                </View>
+                <View style={{ height: 100 }} /> {/* Spacer for global FloatingHeader */}
 
                 <View style={styles.tabsWrap}>
                     <FlatList

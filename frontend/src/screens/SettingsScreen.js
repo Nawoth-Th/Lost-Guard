@@ -58,13 +58,7 @@ const SettingsScreen = ({ navigation }) => {
         <View style={styles.container}>
             <LinearGradient colors={[Theme.colors.background, '#0f172a']} style={StyleSheet.absoluteFill} />
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <ChevronLeft color={Theme.colors.text} size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Account Settings</Text>
-                    <View style={{ width: 44 }} />
-                </View>
+                <View style={{ height: 100 }} /> {/* Spacer for global FloatingHeader */}
 
                 <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                     {/* Profile Section */}
@@ -172,7 +166,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: Theme.spacing.l,
-        paddingBottom: 40,
+        paddingBottom: 120, // Space for bottom menu
     },
     section: {
         marginBottom: 28,

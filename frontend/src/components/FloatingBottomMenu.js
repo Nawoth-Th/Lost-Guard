@@ -166,21 +166,24 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     mainButtonContainer: {
+        width: 80, // Slightly larger to accommodate rotation without clipping
+        height: 80,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    mainButton: {
         width: 64,
         height: 64,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        transform: [{ rotate: '45deg' }],
         elevation: 10,
         shadowColor: Theme.colors.primary,
         shadowOffset: { width: 0, height: 5 },
         shadowOpacity: 0.5,
         shadowRadius: 10,
-    },
-    mainButton: {
-        width: 64,
-        height: 64,
-        borderRadius: 16, // Square-ish diamond
-        alignItems: 'center',
-        justifyContent: 'center',
-        transform: [{ rotate: '45deg' }], // Diamond shape
+        backgroundColor: Theme.colors.background, // Match background to prevent outline issues
     },
     itemCircle: {
         position: 'absolute',
