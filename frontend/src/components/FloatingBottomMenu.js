@@ -33,8 +33,8 @@ const FloatingBottomMenu = ({ navigation }) => {
     };
 
     const navigateTo = (screen) => {
-        closeMenu();
         navigation.navigate(screen);
+        closeMenu();
     };
 
     const mainButtonStyle = useAnimatedStyle(() => {
