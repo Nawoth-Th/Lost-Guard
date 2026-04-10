@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, RefreshControl, Platform, Image } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, RefreshControl, Platform, Image, InteractionManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Plus, MapPin, Clock, MessageCircle, User, Trophy, Bell } from 'lucide-react-native';
@@ -51,8 +51,11 @@ const HomeScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-        fetchItems(searchQuery);
-        fetchSuggestedItems();
+        const task = InteractionManager.runAfterInteractions(() => {
+            fetchItems(searchQuery);
+            fetchSuggestedItems();
+        });
+        return () => task.cancel();
     }, [searchQuery]);
 
     const onRefresh = useCallback(() => {
