@@ -14,17 +14,52 @@ import Theme from '../constants/Theme';
 
 const { width } = Dimensions.get('window');
 
+const MenuItem = ({ item, index, animation, onPress }) => {
+    const mockPositions = [
+        { x: -95, y: -25 }, // Profile (far left)
+        { x: -45, y: -80 }, // Trophy (top left)
+        { x: 45, y: -80 },  // Message (top right)
+        { x: 95, y: -25 },  // Search (far right)
+    ];
+    
+    const pos = mockPositions[index];
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { translateX: interpolate(animation.value, [0, 1], [0, pos.x]) },
+                { translateY: interpolate(animation.value, [0, 1], [0, pos.y]) },
+                { scale: animation.value },
+            ],
+            opacity: animation.value,
+        };
+    });
+
+    return (
+        <Animated.View style={[styles.itemCircle, animatedStyle]}>
+            <TouchableOpacity 
+                style={styles.itemTouch}
+                onPress={() => onPress(item.screen)}
+            >
+                <item.icon color="#fff" size={24} />
+            </TouchableOpacity>
+        </Animated.View>
+    );
+};
+
 const FloatingBottomMenu = ({ navigation }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const animation = useSharedValue(0);
 
     const toggleMenu = React.useCallback(() => {
-        const toValue = isOpen ? 0 : 1;
-        animation.value = withTiming(toValue, {
-            duration: 300,
+        setIsOpen(prev => {
+            const nextValue = !prev;
+            animation.value = withTiming(nextValue ? 1 : 0, {
+                duration: nextValue ? 300 : 200,
+            });
+            return nextValue;
         });
-        setIsOpen(!isOpen);
-    }, [isOpen]);
+    }, []);
 
     const closeMenu = React.useCallback(() => {
         animation.value = withTiming(0, {
@@ -34,7 +69,6 @@ const FloatingBottomMenu = ({ navigation }) => {
     }, []);
 
     const navigateTo = React.useCallback((screen) => {
-        // Immediate navigation in the next frame to avoid blocking
         requestAnimationFrame(() => {
             navigation.navigate(screen);
         });
@@ -50,58 +84,6 @@ const FloatingBottomMenu = ({ navigation }) => {
         };
     });
 
-    const getItemStyle = (index) => {
-        // Position items in an arc
-        // 0: Trophy, 1: Message, 2: Profile, 3: Search
-        // Angles: 210, 250, 290, 330 (degrees) - wait, that's downwards.
-        // Let's use 150, 130, 110, 90 or similar for upwards arc.
-        
-        // Actually, let's just use fixed offsets for simplicity and precise control like the mockup
-        const positions = [
-            { x: -70, y: -70 }, // Trophy (Top Left)
-            { x: -30, y: -110 }, // Inbox (Top Mid Left)
-            { x: 30, y: -110 },  // Profile (Top Mid Right)
-            { x: 70, y: -70 },  // Search (Top Right)
-        ];
-
-        // Adjusted positions based on mockup:
-        // Trophy is top left of the diamond.
-        // Message is top right of the diamond.
-        // Profile is far left.
-        // Search is far right.
-        const mockPositions = [
-            { x: -45, y: -80 }, // Trophy
-            { x: 45, y: -80 },  // Message
-            { x: -95, y: -25 }, // Profile
-            { x: 95, y: -25 },  // Search
-        ];
-        
-        const pos = mockPositions[index];
-
-        return useAnimatedStyle(() => {
-            return {
-                transform: [
-                    { translateX: interpolate(animation.value, [0, 1], [0, pos.x]) },
-                    { translateY: interpolate(animation.value, [0, 1], [0, pos.y]) },
-                    { scale: animation.value },
-                ],
-                opacity: animation.value,
-            };
-        });
-    };
-
-    const menuItems = [
-        { icon: User, screen: 'Profile', color: '#6366f1' },
-        { icon: Trophy, screen: 'Leaderboard', color: '#6366f1' },
-        { icon: MessageCircle, screen: 'Inbox', color: '#6366f1' },
-        { icon: Search, screen: 'Home', color: '#6366f1' }, // Search is on Home
-    ];
-
-    // Re-ordering to match mockup positions in the loop
-    // index 0: Profile (far left)
-    // index 1: Trophy (top left)
-    // index 2: Inbox (top right)
-    // index 3: Search (far right)
     const displayItems = [
         { icon: User, screen: 'Profile' },
         { icon: Trophy, screen: 'Leaderboard' },
@@ -111,7 +93,6 @@ const FloatingBottomMenu = ({ navigation }) => {
 
     return (
         <View style={styles.container} pointerEvents="box-none">
-            {/* Backdrop to close menu when open */}
             {isOpen && (
                 <TouchableOpacity 
                     style={StyleSheet.absoluteFill} 
@@ -121,19 +102,16 @@ const FloatingBottomMenu = ({ navigation }) => {
             )}
 
             <View style={styles.menuWrapper} pointerEvents="box-none">
-                {/* Pop-up Items */}
                 {displayItems.map((item, index) => (
-                    <Animated.View key={index} style={[styles.itemCircle, getItemStyle(index)]}>
-                        <TouchableOpacity 
-                            style={styles.itemTouch}
-                            onPress={() => navigateTo(item.screen)}
-                        >
-                            <item.icon color="#fff" size={24} />
-                        </TouchableOpacity>
-                    </Animated.View>
+                    <MenuItem 
+                        key={index} 
+                        item={item} 
+                        index={index} 
+                        animation={animation} 
+                        onPress={navigateTo} 
+                    />
                 ))}
 
-                {/* Main Toggle Button */}
                 <Animated.View style={[styles.mainButtonContainer, mainButtonStyle]}>
                     <TouchableOpacity onPress={toggleMenu} activeOpacity={0.9}>
                         <LinearGradient
