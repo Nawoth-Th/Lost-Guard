@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, User, Mail, Lock, Save, Eye, EyeOff } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
+import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
 
@@ -53,86 +54,63 @@ const SettingsScreen = ({ navigation }) => {
         }
     };
 
-    const InputField = ({ icon: Icon, label, value, onChangeText, placeholder, secureTextEntry, showToggle, onToggle, showPassword }) => (
-        <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>{label}</Text>
-            <GlassCard style={styles.inputCard}>
-                <View style={styles.inputIcon}>
-                    <Icon size={18} color={Theme.colors.primary} />
-                </View>
-                <TextInput
-                    style={styles.input}
-                    value={value}
-                    onChangeText={onChangeText}
-                    placeholder={placeholder}
-                    placeholderTextColor={Theme.colors.textMuted}
-                    secureTextEntry={secureTextEntry && !showPassword}
-                    autoCapitalize="none"
-                />
-                {showToggle && (
-                    <TouchableOpacity onPress={onToggle} style={styles.eyeButton}>
-                        {showPassword ? <EyeOff size={18} color={Theme.colors.textMuted} /> : <Eye size={18} color={Theme.colors.textMuted} />}
-                    </TouchableOpacity>
-                )}
-            </GlassCard>
-        </View>
-    );
-
-    return (
-        <View style={styles.container}>
-            <LinearGradient colors={[Theme.colors.background, '#0f172a']} style={StyleSheet.absoluteFill} />
-            <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <ChevronLeft color={Theme.colors.text} size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Account Settings</Text>
-                    <View style={{ width: 44 }} />
-                </View>
-
-                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                     {/* Profile Section */}
                     <View style={styles.section}>
                         <Text style={styles.sectionLabel}>Profile Information</Text>
-                        <InputField
-                            icon={User}
-                            label="Full Name"
-                            value={name}
-                            onChangeText={setName}
-                            placeholder="Enter your name"
-                        />
-                        <InputField
-                            icon={Mail}
-                            label="Email Address"
-                            value={email}
-                            onChangeText={setEmail}
-                            placeholder="Enter your email"
-                        />
+                        
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>Full Name</Text>
+                            <GlassInput
+                                leftIcon={<User size={18} color={Theme.colors.primary} />}
+                                value={name}
+                                onChangeText={setName}
+                                placeholder="Enter your name"
+                                autoCapitalize="none"
+                            />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>Email Address</Text>
+                            <GlassInput
+                                leftIcon={<Mail size={18} color={Theme.colors.primary} />}
+                                value={email}
+                                onChangeText={setEmail}
+                                placeholder="Enter your email"
+                                autoCapitalize="none"
+                            />
+                        </View>
                     </View>
 
                     {/* Password Section */}
                     <View style={styles.section}>
                         <Text style={styles.sectionLabel}>Change Password</Text>
                         <Text style={styles.sectionHint}>Leave blank to keep your current password</Text>
-                        <InputField
-                            icon={Lock}
-                            label="New Password"
-                            value={newPassword}
-                            onChangeText={setNewPassword}
-                            placeholder="Enter new password"
-                            secureTextEntry
-                            showToggle
-                            showPassword={showNewPassword}
-                            onToggle={() => setShowNewPassword(!showNewPassword)}
-                        />
-                        <InputField
-                            icon={Lock}
-                            label="Confirm New Password"
-                            value={confirmPassword}
-                            onChangeText={setConfirmPassword}
-                            placeholder="Confirm new password"
-                            secureTextEntry
-                        />
+                        
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>New Password</Text>
+                            <GlassInput
+                                leftIcon={<Lock size={18} color={Theme.colors.primary} />}
+                                value={newPassword}
+                                onChangeText={setNewPassword}
+                                placeholder="Enter new password"
+                                secureTextEntry={!showNewPassword}
+                                rightIcon={showNewPassword ? <EyeOff size={18} color={Theme.colors.textMuted} /> : <Eye size={18} color={Theme.colors.textMuted} />}
+                                rightIconOnPress={() => setShowNewPassword(!showNewPassword)}
+                                autoCapitalize="none"
+                            />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>Confirm New Password</Text>
+                            <GlassInput
+                                leftIcon={<Lock size={18} color={Theme.colors.primary} />}
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                placeholder="Confirm new password"
+                                secureTextEntry
+                                autoCapitalize="none"
+                            />
+                        </View>
                     </View>
 
                     {/* Save Button */}
@@ -206,28 +184,6 @@ const styles = StyleSheet.create({
         color: Theme.colors.text,
         fontSize: 13, fontWeight: '600',
         marginBottom: 6, marginLeft: 4,
-    },
-    inputCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 0,
-        height: 52,
-    },
-    inputIcon: {
-        width: 36, height: 36, borderRadius: 10,
-        backgroundColor: `${Theme.colors.primary}15`,
-        alignItems: 'center', justifyContent: 'center',
-        marginRight: 12,
-    },
-    input: {
-        flex: 1,
-        color: Theme.colors.text,
-        fontSize: 15,
-        height: 52,
-    },
-    eyeButton: {
-        padding: 8,
     },
     saveButtonWrapper: {
         marginTop: 10,

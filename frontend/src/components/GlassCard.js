@@ -5,9 +5,7 @@ import Theme from '../constants/Theme';
 const GlassCard = ({ children, style }) => {
     return (
         <View style={[styles.container, style]}>
-            <View style={styles.innerContainer}>
-                {children}
-            </View>
+            {children}
         </View>
     );
 };
@@ -18,12 +16,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         borderWidth: 0.5,
         borderColor: Theme.colors.glassBorder,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    },
-    innerContainer: {
+        backgroundColor: 'rgba(255, 255, 255, 0.12)',
         padding: Theme.spacing.m,
-        width: '100%',
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
     },
 });
 
