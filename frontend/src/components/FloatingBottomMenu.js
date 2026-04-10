@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Animated, { 
     useSharedValue, 
     useAnimatedStyle, 
@@ -47,7 +47,8 @@ const MenuItem = ({ item, index, animation, onPress }) => {
     );
 };
 
-const FloatingBottomMenu = ({ navigation }) => {
+const FloatingBottomMenu = () => {
+    const navigation = useNavigation();
     const [isOpen, setIsOpen] = React.useState(false);
     const animation = useSharedValue(0);
 

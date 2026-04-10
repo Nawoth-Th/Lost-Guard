@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, ChevronLeft } from 'lucide-react-native';
@@ -9,7 +10,7 @@ const FloatingHeader = ({
     title = "Lost Guard", 
     greeting, 
     onPlusPress, 
-    showBack, 
+    showBack = false, 
     onBackPress, 
     showPlus = true,
     centerTitle = false,
@@ -18,6 +19,7 @@ const FloatingHeader = ({
     rightIcon = null,
     onRightPress = null
 }) => {
+    const navigation = useNavigation();
     const insets = useSafeAreaInsets();
 
     const handleRightPress = onRightPress || onPlusPress;
@@ -28,7 +30,7 @@ const FloatingHeader = ({
                 {/* Left Section */}
                 <View style={styles.leftContainer}>
                     {showBack ? (
-                        <TouchableOpacity onPress={onBackPress} style={styles.sideButton}>
+                        <TouchableOpacity onPress={onBackPress || (() => navigation.goBack())} style={styles.sideButton}>
                             <ChevronLeft color={Theme.colors.text} size={28} />
                         </TouchableOpacity>
                     ) : !centerTitle ? (

@@ -127,12 +127,11 @@ function AppContent({ currentRoute }) {
                     titleIcon={currentRoute === 'AdminDashboard' ? <ShieldCheck color="#FBBF24" size={20} /> : null}
                     plusVariant={currentRoute === 'AdminDashboard' ? 'dashboard' : 'premium'}
                     rightIcon={currentRoute === 'ItemDetail' ? <Share2 color={Theme.colors.text} size={20} /> : null}
-                    onBackPress={() => navigationRef.current?.goBack()}
                     onPlusPress={handlePlusPress}
                     onRightPress={handlePlusPress}
                 />
             )}
-            {showMenu && <FloatingBottomMenu navigation={navigationRef.current} />}
+            {showMenu && <FloatingBottomMenu />}
         </View>
     );
 }
