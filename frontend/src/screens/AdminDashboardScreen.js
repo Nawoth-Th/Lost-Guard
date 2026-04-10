@@ -716,6 +716,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     metaInfo: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,

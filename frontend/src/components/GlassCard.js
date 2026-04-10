@@ -13,11 +13,11 @@ const GlassCard = ({ children, style }) => {
 const styles = StyleSheet.create({
     container: {
         borderRadius: Theme.spacing.m,
-        overflow: 'hidden',
         borderWidth: 0.5,
         borderColor: Theme.colors.glassBorder,
         backgroundColor: 'rgba(255, 255, 255, 0.12)',
         padding: Theme.spacing.m,
+        width: '100%',
     },
 });
 
