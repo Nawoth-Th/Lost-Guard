@@ -64,6 +64,14 @@ function AppStack() {
 
 function AppContent({ currentRoute }) {
     const { userInfo } = React.useContext(AuthContext);
+    const [activeAdminTab, setActiveAdminTab] = React.useState('Claims');
+
+    React.useEffect(() => {
+        const sub = DeviceEventEmitter.addListener('MODERATION_TAB_CHANGE', (data) => {
+            setActiveAdminTab(data.tab);
+        });
+        return () => sub.remove();
+    }, []);
     
     const hideMenuOn = ['ReportItem', 'Chat', 'Claim', 'ItemDetail', 'Settings'];
     const showMenu = !hideMenuOn.includes(currentRoute);
@@ -86,7 +94,10 @@ function AppContent({ currentRoute }) {
 
     const isMainScreen = ['Home', 'Profile', 'Leaderboard', 'Inbox'].includes(currentRoute);
     const hidePlusOn = ['MyClaims', 'Claim', 'ReportItem'];
-    const showPlus = !hidePlusOn.includes(currentRoute);
+    
+    // Hide plus button on Admin Dashboard if "Claims" tab is active
+    const showPlus = !hidePlusOn.includes(currentRoute) && 
+                    !(currentRoute === 'AdminDashboard' && activeAdminTab === 'Claims');
 
     const hideHeaderOn = ['Chat'];
     const showHeader = !hideHeaderOn.includes(currentRoute);

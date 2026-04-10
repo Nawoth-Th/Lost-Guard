@@ -57,6 +57,7 @@ const AdminDashboardScreen = ({ navigation }) => {
 
     useEffect(() => {
         fetchData();
+        DeviceEventEmitter.emit('MODERATION_TAB_CHANGE', { tab: activeTab });
     }, [activeTab]);
 
     useEffect(() => {
