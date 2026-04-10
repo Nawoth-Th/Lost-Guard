@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
         height: 80,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 10,
     },
     mainButton: {
         width: 64,
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: -1,
+        zIndex: 5,
     },
     itemTouch: {
         width: 54,
