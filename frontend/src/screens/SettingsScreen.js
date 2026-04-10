@@ -54,6 +54,19 @@ const SettingsScreen = ({ navigation }) => {
         }
     };
 
+    return (
+        <View style={styles.container}>
+            <LinearGradient colors={[Theme.colors.background, '#0f172a']} style={StyleSheet.absoluteFill} />
+            <SafeAreaView style={{ flex: 1 }}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <ChevronLeft color={Theme.colors.text} size={24} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Account Settings</Text>
+                    <View style={{ width: 44 }} />
+                </View>
+
+                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                     {/* Profile Section */}
                     <View style={styles.section}>
                         <Text style={styles.sectionLabel}>Profile Information</Text>
