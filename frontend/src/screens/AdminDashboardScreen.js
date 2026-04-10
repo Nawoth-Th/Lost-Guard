@@ -396,8 +396,8 @@ const AdminDashboardScreen = ({ navigation }) => {
 
                 {/* CRUD Modal */}
                 {showModal && (
-                    <BlurView intensity={60} tint="dark" style={styles.modalOverlay}>
-                        <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.glassDark }]}>
+                    <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.modalBg }]}>
                             <Text style={styles.modalTitle}>
                                 {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : 'Location'}
                             </Text>
@@ -443,8 +443,8 @@ const AdminDashboardScreen = ({ navigation }) => {
 
                 {/* Edit User Modal */}
                 {showUserEditModal && (
-                    <BlurView intensity={60} tint="dark" style={styles.modalOverlay}>
-                        <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.glassDark }]}>
+                    <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.modalBg }]}>
                             <Text style={styles.modalTitle}>Edit User</Text>
                             
                             <GlassInput
@@ -489,8 +489,8 @@ const AdminDashboardScreen = ({ navigation }) => {
 
                 {/* User Items Modal */}
                 {showUserItemsModal && (
-                    <BlurView intensity={60} tint="dark" style={styles.modalOverlay}>
-                        <GlassCard style={[styles.modalContent, { maxHeight: '80%', backgroundColor: Theme.colors.glassDark }]}>
+                    <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { maxHeight: '80%', backgroundColor: Theme.colors.modalBg }]}>
                             <View style={styles.modalHeaderRow}>
                                 <Text style={styles.modalTitle}>User Listings</Text>
                                 <TouchableOpacity onPress={() => setShowUserItemsModal(false)}>
@@ -737,7 +737,7 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'center',
         padding: 24,
         zIndex: 1000,

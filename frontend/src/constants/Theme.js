@@ -6,9 +6,10 @@ const Theme = {
         accent: '#8b5cf6', // Violet
         text: '#ffffff',
         textMuted: '#94a3b8',
-        glass: 'rgba(255, 255, 255, 0.08)',
+        glass: 'rgba(255, 255, 255, 0.2)',
         glassBorder: 'rgba(255, 255, 255, 0.15)',
-        glassDark: 'rgba(0, 0, 0, 0.3)',
+        glassDark: 'rgba(0, 0, 0, 0.9)',
+        modalBg: 'rgba(15, 15, 20, 0.95)',
         glowPurple: '#a855f7',
         glowCyan: '#22d3ee',
     },
@@ -25,7 +26,7 @@ const Theme = {
         xl: 28,
     },
     blur: {
-        intensity: 20,
+        intensity: 40,
         tint: 'dark',
     }
 };
