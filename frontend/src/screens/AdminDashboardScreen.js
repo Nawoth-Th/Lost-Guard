@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { ChevronLeft, ShieldCheck, CheckCircle, XCircle, User, Package, Plus, Trash2, Edit2, MapPin, Tag } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
@@ -395,8 +396,8 @@ const AdminDashboardScreen = ({ navigation }) => {
 
                 {/* CRUD Modal */}
                 {showModal && (
-                    <View style={styles.modalOverlay}>
-                        <GlassCard style={styles.modalContent}>
+                    <BlurView intensity={60} tint="dark" style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.glassDark }]}>
                             <Text style={styles.modalTitle}>
                                 {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : 'Location'}
                             </Text>
@@ -437,13 +438,13 @@ const AdminDashboardScreen = ({ navigation }) => {
                                 </TouchableOpacity>
                             </View>
                         </GlassCard>
-                    </View>
+                    </BlurView>
                 )}
 
                 {/* Edit User Modal */}
                 {showUserEditModal && (
-                    <View style={styles.modalOverlay}>
-                        <GlassCard style={styles.modalContent}>
+                    <BlurView intensity={60} tint="dark" style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.glassDark }]}>
                             <Text style={styles.modalTitle}>Edit User</Text>
                             
                             <GlassInput
@@ -483,13 +484,13 @@ const AdminDashboardScreen = ({ navigation }) => {
                                 </TouchableOpacity>
                             </View>
                         </GlassCard>
-                    </View>
+                    </BlurView>
                 )}
 
                 {/* User Items Modal */}
                 {showUserItemsModal && (
-                    <View style={styles.modalOverlay}>
-                        <GlassCard style={[styles.modalContent, { maxHeight: '80%' }]}>
+                    <BlurView intensity={60} tint="dark" style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { maxHeight: '80%', backgroundColor: Theme.colors.glassDark }]}>
                             <View style={styles.modalHeaderRow}>
                                 <Text style={styles.modalTitle}>User Listings</Text>
                                 <TouchableOpacity onPress={() => setShowUserItemsModal(false)}>
@@ -508,7 +509,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                                 }
                             />
                         </GlassCard>
-                    </View>
+                    </BlurView>
                 )}
             </SafeAreaView>
         </View>
@@ -736,7 +737,7 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'center',
         padding: 24,
         zIndex: 1000,
@@ -786,8 +787,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 12,
-        borderBottomWidth: 0.5,
-        borderBottomColor: Theme.colors.glassBorder,
+        paddingHorizontal: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderRadius: 12,
+        marginBottom: 8,
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
     },
     userItemTitle: {
         color: Theme.colors.text,
