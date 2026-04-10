@@ -1,3 +1,7 @@
+import React from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, ChevronLeft } from 'lucide-react-native';
 import Theme from '../constants/Theme';
 
