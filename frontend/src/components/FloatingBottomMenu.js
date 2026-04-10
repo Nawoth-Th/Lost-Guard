@@ -180,9 +180,9 @@ const styles = StyleSheet.create({
         transform: [{ rotate: '45deg' }],
         elevation: 10,
         shadowColor: Theme.colors.primary,
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 15,
         backgroundColor: Theme.colors.background, // Match background to prevent outline issues
     },
     itemCircle: {
