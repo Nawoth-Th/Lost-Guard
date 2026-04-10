@@ -15,27 +15,31 @@ import Theme from '../constants/Theme';
 const { width } = Dimensions.get('window');
 
 const FloatingBottomMenu = ({ navigation }) => {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
     const animation = useSharedValue(0);
 
-    const toggleMenu = () => {
+    const toggleMenu = React.useCallback(() => {
         const toValue = isOpen ? 0 : 1;
-        animation.value = withSpring(toValue, {
-            damping: 12,
-            stiffness: 100,
+        animation.value = withTiming(toValue, {
+            duration: 300,
         });
         setIsOpen(!isOpen);
-    };
+    }, [isOpen]);
 
-    const closeMenu = () => {
-        animation.value = withSpring(0);
+    const closeMenu = React.useCallback(() => {
+        animation.value = withTiming(0, {
+            duration: 200,
+        });
         setIsOpen(false);
-    };
+    }, []);
 
-    const navigateTo = (screen) => {
-        navigation.navigate(screen);
+    const navigateTo = React.useCallback((screen) => {
+        // Immediate navigation in the next frame to avoid blocking
+        requestAnimationFrame(() => {
+            navigation.navigate(screen);
+        });
         closeMenu();
-    };
+    }, [navigation, closeMenu]);
 
     const mainButtonStyle = useAnimatedStyle(() => {
         return {
