@@ -43,12 +43,15 @@ Prevents platform clutter. Once an item is successfully marked as recovered, it 
 ### 💎 Premium Experience Architecture
 
 #### ☁️ Universal Floating UI
+
 A standardized, responsive header and menu system that persists across all app states. Features include context-aware action buttons (Dynamic Share, Moderation Add) and high-quality blur-glassmorphism.
 
 #### ⚡ Zero-Lag Performance Engine
+
 Deeply optimized startup sequence using staggered data-loading and `InteractionManager` orchestration. The interface remains 100% interactive even while the system processes heavy background data.
 
 #### 🎨 Smart-Blur Styling (Android Optimized)
+
 An intelligent rendering engine that prioritizes visual fidelity on iOS while falling back to high-performance semi-transparent layers for list items on Android, keeping the app smooth at 60fps across all devices.
 
 ### 🛡️ Infinite Admin Oversight
