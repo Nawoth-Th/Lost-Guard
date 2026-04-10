@@ -51,9 +51,22 @@ const HomeScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
+        // Zero-Lag Startup: Defer all heavy work until the UI thread is dead quiet
         const task = InteractionManager.runAfterInteractions(() => {
-            fetchItems(searchQuery);
-            fetchSuggestedItems();
+            // Priority 1: Fetch main items after a tiny window to allow menu entrance
+            const mainTimer = setTimeout(() => {
+                fetchItems(searchQuery);
+            }, 100);
+
+            // Priority 2: Fetch complex match data much later
+            const suggestionTimer = setTimeout(() => {
+                fetchSuggestedItems();
+            }, 2000);
+
+            return () => {
+                clearTimeout(mainTimer);
+                clearTimeout(suggestionTimer);
+            };
         });
         return () => task.cancel();
     }, [searchQuery]);
@@ -104,7 +117,7 @@ const HomeScreen = ({ navigation }) => {
             style={styles.itemWrapper}
             onPress={() => navigation.navigate('ItemDetail', { id: item._id })}
         >
-            <GlassCard style={styles.itemCard}>
+            <GlassCard style={styles.itemCard} priority="low">
                 <View style={styles.cardHeader}>
                     <View style={[styles.badge, { backgroundColor: item.type === 'Lost' ? '#ef444433' : '#10b98133' }]}>
                         <Text style={[styles.badgeText, { color: item.type === 'Lost' ? '#f87171' : '#34d399' }]}>
@@ -164,6 +177,10 @@ const HomeScreen = ({ navigation }) => {
                 keyExtractor={item => item._id}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
+                initialNumToRender={5}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.primary} />
                 }
