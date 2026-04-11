@@ -1,5 +1,6 @@
 const Item = require('../models/Item');
 const StatusLog = require('../models/StatusLog');
+const Claim = require('../models/Claim');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const Notification = require('../models/Notification');
@@ -337,16 +338,26 @@ const getItemStatusLogs = async (req, res) => {
 // @access  Private
 const getMyItems = async (req, res) => {
     try {
+        // Find items user successfully claimed
+        const approvedClaims = await Claim.find({ requester: req.user._id, status: 'Approved' });
+        const claimedItemIds = approvedClaims.map(c => c.item);
+
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        
         const items = await Item.find({ 
-            user: req.user._id,
+            $or: [
+                { user: req.user._id },
+                { _id: { $in: claimedItemIds } }
+            ],
             $or: [
                 { status: { $nin: ['Recovered', 'Closed'] } },
                 { status: { $in: ['Recovered', 'Closed'] }, updatedAt: { $gt: oneHourAgo } }
             ]
         }).sort({ createdAt: -1 });
+        
         res.json(items);
     } catch (error) {
+        console.error('Get My Items Error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
@@ -356,14 +367,24 @@ const getMyItems = async (req, res) => {
 // @access  Private
 const getArchivedItems = async (req, res) => {
     try {
+        // Find items user successfully claimed
+        const approvedClaims = await Claim.find({ requester: req.user._id, status: 'Approved' });
+        const claimedItemIds = approvedClaims.map(c => c.item);
+
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        
         const items = await Item.find({ 
-            user: req.user._id,
+            $or: [
+                { user: req.user._id },
+                { _id: { $in: claimedItemIds } }
+            ],
             status: { $in: ['Recovered', 'Closed'] },
             updatedAt: { $lte: oneHourAgo }
         }).sort({ updatedAt: -1 });
+        
         res.json(items);
     } catch (error) {
+        console.error('Get Archived Items Error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
