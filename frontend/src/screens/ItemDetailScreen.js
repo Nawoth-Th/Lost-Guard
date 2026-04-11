@@ -20,12 +20,15 @@ const ItemDetailScreen = ({ route, navigation }) => {
     const [loading, setLoading] = useState(true);
     const [matchesLoading, setMatchesLoading] = useState(true);
     const [logsLoading, setLogsLoading] = useState(false);
+    const [hasClaimed, setHasClaimed] = useState(false);
+    const [claimStatus, setClaimStatus] = useState(null);
 
     const fetchItemDetails = async () => {
         try {
             const { data } = await api.get(`/items/${id}`);
             setItem(data);
             fetchMatches();
+            fetchClaimStatus();
         } catch (error) {
             console.error('Fetch Item Error:', error.response?.data?.message || error.message);
             Alert.alert('Error', 'Could not load item details.');
@@ -43,6 +46,17 @@ const ItemDetailScreen = ({ route, navigation }) => {
             console.error('Fetch Matches Error:', error.message);
         } finally {
             setMatchesLoading(false);
+        }
+    };
+
+    const fetchClaimStatus = async () => {
+        if (!userInfo) return;
+        try {
+            const { data } = await api.get(`/claims/status/${id}`);
+            setHasClaimed(data.hasClaimed);
+            setClaimStatus(data.status);
+        } catch (error) {
+            console.error('Fetch Claim Status Error:', error.message);
         }
     };
 
@@ -262,15 +276,25 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
                     <View style={styles.actions}>
                         {item.type === 'Found' && item.status !== 'Recovered' && (
-                            <TouchableOpacity style={[styles.actionButtonMain, { marginBottom: 12 }]} onPress={handleClaim}>
+                            <TouchableOpacity 
+                                style={[
+                                    styles.actionButtonMain, 
+                                    { marginBottom: 12 },
+                                    hasClaimed && { opacity: 0.8 }
+                                ]} 
+                                onPress={hasClaimed ? null : handleClaim}
+                                disabled={hasClaimed}
+                            >
                                 <LinearGradient
-                                    colors={[Theme.colors.primary, Theme.colors.accent]}
+                                    colors={hasClaimed ? ['#4b5563', '#374151'] : [Theme.colors.primary, Theme.colors.accent]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
                                     style={styles.actionGradient}
                                 >
                                     <CheckCircle2 color="#fff" size={20} style={{ marginRight: 8 }} />
-                                    <Text style={styles.actionText}>Claim This Item</Text>
+                                    <Text style={styles.actionText}>
+                                        {hasClaimed ? 'Already sent a claim request' : 'Claim This Item'}
+                                    </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         )}

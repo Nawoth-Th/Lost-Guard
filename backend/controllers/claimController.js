@@ -162,4 +162,24 @@ const updateClaimStatus = async (req, res) => {
     }
 };
 
-module.exports = { submitClaim, getClaims, updateClaimStatus };
+// @desc    Check if user has already claimed this item
+// @route   GET /api/claims/status/:itemId
+// @access  Private
+const getMyClaimStatus = async (req, res) => {
+    try {
+        const claim = await Claim.findOne({ 
+            item: req.params.itemId, 
+            requester: req.user._id 
+        });
+        
+        res.json({ 
+            hasClaimed: !!claim,
+            status: claim ? claim.status : null 
+        });
+    } catch (error) {
+        console.error('Check Claim Status Error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+module.exports = { submitClaim, getClaims, updateClaimStatus, getMyClaimStatus };
