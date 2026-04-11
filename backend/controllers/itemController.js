@@ -270,6 +270,26 @@ const updateItemHub = async (req, res) => {
             
             const updatedItem = await item.save();
             
+            // 🔔 Notify the owner when item is secured at hub
+            if (isAtHub) {
+                const owner = await User.findById(item.user);
+                if (owner && owner.email) {
+                    sendEmail({
+                        email: owner.email,
+                        subject: `Your item "${item.title}" is safe! 🛡️`,
+                        message: templates.itemSecured(item.title, hubName),
+                    }).catch(err => console.error('Hub notification email error:', err.message));
+
+                    // Also create an in-app notification
+                    await Notification.create({
+                        user: owner._id,
+                        title: 'Item Secured at Hub 🛡️',
+                        message: `Your item "${item.title}" has been verified and is ready for collection at ${hubName}.`,
+                        item: item._id
+                    }).catch(err => console.error('Hub in-app notification error:', err.message));
+                }
+            }
+
             await StatusLog.create({
                 item: item._id,
                 status: isAtHub ? 'Secured at Hub' : 'In Circulation',

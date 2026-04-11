@@ -293,6 +293,47 @@ const templates = {
             </div>
           </div>
         </div>
+      </td>`),
+
+    // 6. Item Secured at Hub — sent when admin verify and secure at hub
+    itemSecured: (itemName, hubName) => emailWrapper(`<td style="padding:0;">
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(6,95,70,0.15));padding:32px;text-align:center;">
+          <span style="font-size:40px;">🛡️</span>
+          <h2 style="color:#ffffff;font-size:20px;font-weight:700;margin:12px 0 4px;">Item Verified & Secured</h2>
+          <p style="color:#6ee7b7;font-size:13px;margin:0;">Your item is now in safe hands</p>
+        </div>
+        
+        <div style="padding:32px;">
+          <div style="background-color:#0f172a;border-radius:12px;padding:20px;border:1px solid rgba(16,185,129,0.2);margin-bottom:20px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:6px 0;">
+                  <span style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Item</span>
+                  <p style="color:#e2e8f0;font-size:16px;font-weight:600;margin:4px 0 0;">${itemName}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0 6px;border-top:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Secure Location</span>
+                  <p style="color:#10b981;font-size:16px;font-weight:700;margin:4px 0 0;">${hubName}</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background-color:rgba(99,102,241,0.05);border-left:4px solid #6366f1;padding:16px;margin-bottom:24px;">
+            <p style="color:#e2e8f0;font-size:14px;margin:0;line-height:1.6;">
+              <strong>Collection Instructions:</strong><br/>
+              Your item has been verified by campus security. Please visit <strong style="color:#ffffff;">${hubName}</strong> with your Student ID to collect it.
+            </p>
+          </div>
+          
+          <div style="text-align:center;">
+            <div style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);border-radius:12px;padding:14px 32px;">
+              <span style="color:#ffffff;font-size:14px;font-weight:600;">View in App</span>
+            </div>
+          </div>
+        </div>
       </td>`)
 };
 

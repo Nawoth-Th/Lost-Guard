@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Share, Alert, Image, ActivityIndicator, FlatList, DeviceEventEmitter } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2, History, ShieldCheck } from 'lucide-react-native';
@@ -115,6 +116,57 @@ const ItemDetailScreen = ({ route, navigation }) => {
         navigation.navigate('Claim', { item: item });
     };
 
+    // Refresh data on screen focus
+    useFocusEffect(
+        useCallback(() => {
+            if (id) {
+                fetchClaimStatus();
+            }
+        }, [id])
+    );
+
+    const toggleHubStatus = async (hubName = '') => {
+        try {
+            const { data } = await api.patch(`/items/${id}/hub`, {
+                isAtHub: !item.isAtHub,
+                hubName: !item.isAtHub ? hubName : ''
+            });
+            setItem(data);
+            fetchStatusLogs();
+            Alert.alert('Success', `Item status updated to ${!item.isAtHub ? 'Secured at Hub' : 'In Circulation'}`);
+        } catch (error) {
+            console.error('Update Hub Error:', error.response?.data?.message || error.message);
+            Alert.alert('Error', 'Failed to update hub status.');
+        }
+    };
+
+    const handleHubToggle = () => {
+        if (!item.isAtHub) {
+            // Alert.prompt is iOS only. For a universal fix, we'll use Alert to confirm
+            // and then Admin can update Hub name via a secondary input if needed.
+            // But for this project, let's keep it simple with Alert.alert if Android.
+            
+            Alert.alert(
+                "Verify Drop-off",
+                "Is this item secured at the University Security Gate?",
+                [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Confirm", onPress: () => toggleHubStatus('Main Security Gate (NAB)') }
+                ]
+            );
+        } else {
+            // If releasing
+            Alert.alert(
+                "Release Item",
+                "Are you sure you want to release this item from the hub?",
+                [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Release", onPress: () => toggleHubStatus(), style: 'destructive' }
+                ]
+            );
+        }
+    };
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -214,6 +266,36 @@ const ItemDetailScreen = ({ route, navigation }) => {
                             <Text style={styles.reporterName}>{item.user?.name || 'Anonymous'}</Text>
                         </View>
                     </GlassCard>
+
+                    {item.isAtHub && (
+                        <GlassCard style={styles.verifiedHubCard}>
+                            <View style={styles.verifiedHubHeader}>
+                                <ShieldCheck size={24} color="#10b981" />
+                                <Text style={styles.verifiedHubTitle}>Verified at Hub</Text>
+                            </View>
+                            <Text style={styles.verifiedHubInstruction}>
+                                Your item has been verified by campus security. Please visit <Text style={{fontWeight: 'bold', color: '#fff'}}>{item.hubName}</Text> with your Student ID to collect it.
+                            </Text>
+                        </GlassCard>
+                    )}
+
+                    {userInfo?.isAdmin && (
+                        <GlassCard style={styles.adminHubPanel}>
+                            <Text style={styles.adminPanelTitle}>🛡️ Moderation: Hub Management</Text>
+                            <Text style={styles.adminPanelDesc}>
+                                Bridge the physical handover. Use this to mark items as secured by campus authorities.
+                            </Text>
+                            <TouchableOpacity 
+                                style={[styles.hubToggleButton, { backgroundColor: item.isAtHub ? '#ef4444' : '#10b981' }]} 
+                                onPress={handleHubToggle}
+                            >
+                                <ShieldCheck size={20} color="#fff" />
+                                <Text style={styles.hubToggleText}>
+                                    {item.isAtHub ? 'Release from Hub' : 'Secure at Hub'}
+                                </Text>
+                            </TouchableOpacity>
+                        </GlassCard>
+                    )}
 
                     {(userInfo?.isAdmin || item.user?._id === userInfo?._id) && (
                         <View style={styles.logsSection}>
@@ -603,6 +685,59 @@ const styles = StyleSheet.create({
         color: '#10b981',
         fontSize: 10,
         fontWeight: 'bold',
+    },
+    verifiedHubCard: {
+        padding: Theme.spacing.l,
+        marginBottom: Theme.spacing.l,
+        borderLeftWidth: 4,
+        borderLeftColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+    },
+    verifiedHubHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 8,
+    },
+    verifiedHubTitle: {
+        color: '#10b981',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    verifiedHubInstruction: {
+        color: Theme.colors.textMuted,
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    adminHubPanel: {
+        padding: Theme.spacing.l,
+        marginBottom: Theme.spacing.l,
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+        backgroundColor: 'rgba(239, 68, 68, 0.02)',
+    },
+    adminPanelTitle: {
+        color: Theme.colors.text,
+        fontSize: 15,
+        fontWeight: 'bold',
+        marginBottom: 4,
+    },
+    adminPanelDesc: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
+        marginBottom: 16,
+    },
+    hubToggleButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        borderRadius: 12,
+        gap: 8,
+    },
+    hubToggleText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14,
     },
 });
 
