@@ -1,6 +1,7 @@
 const Claim = require('../models/Claim');
 const Item = require('../models/Item');
 const User = require('../models/User');
+const StatusLog = require('../models/StatusLog');
 const { sendEmail, templates } = require('../utils/emailService');
 
 // @desc    Submit a claim for an item
@@ -113,18 +114,39 @@ const updateClaimStatus = async (req, res) => {
             return res.status(401).json({ message: 'Not authorized to update this claim' });
         }
 
+        // Find the claimant for notification and logging
+        const claimant = await User.findById(claim.requester);
+
         claim.status = status;
         await claim.save();
 
-        // If approved, optionally close the item
+        // If approved, close the item and log the status
         if (status === 'Approved') {
             const item = await Item.findById(claim.item._id);
-            item.status = 'Recovered';
-            await item.save();
+            if (item) {
+                item.status = 'Recovered';
+                await item.save();
+
+                // 🏆 Trust Score: Reward the finder if they reported as 'Found'
+                if (item.type === 'Found') {
+                    const finder = await User.findById(item.user);
+                    if (finder) {
+                        finder.trustScore += 10;
+                        await finder.save();
+                    }
+                }
+
+                // ⏱️ Create StatusLog entry for the timeline
+                await StatusLog.create({
+                    item: item._id,
+                    status: 'Recovered',
+                    changedBy: req.user._id,
+                    remarks: req.body.remarks || `Claim approved for ${claimant ? claimant.name : 'claimant'}`
+                });
+            }
         }
 
         // Notify the claimant (requester)
-        const claimant = await User.findById(claim.requester);
         if (claimant) {
             sendEmail({
                 email: claimant.email,
