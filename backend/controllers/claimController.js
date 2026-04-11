@@ -44,6 +44,14 @@ const submitClaim = async (req, res) => {
 
         const createdClaim = await claim.save();
 
+        // ⏱️ Create StatusLog entry for the timeline
+        await StatusLog.create({
+            item: itemId,
+            status: 'Claim Submitted',
+            changedBy: req.user._id,
+            remarks: `Claim request submitted by ${req.user.name}`
+        });
+
         // Notify the item finder (reporter)
         const finder = await User.findById(item.user);
         if (finder) {
@@ -139,11 +147,19 @@ const updateClaimStatus = async (req, res) => {
                 // ⏱️ Create StatusLog entry for the timeline
                 await StatusLog.create({
                     item: item._id,
-                    status: 'Recovered',
+                    status: 'Item Claimed',
                     changedBy: req.user._id,
                     remarks: req.body.remarks || `Claim approved for ${claimant ? claimant.name : 'claimant'}`
                 });
             }
+        } else if (status === 'Rejected') {
+            // ⏱️ Create StatusLog entry for the timeline on rejection
+            await StatusLog.create({
+                item: claim.item._id,
+                status: 'Claim Rejected',
+                changedBy: req.user._id,
+                remarks: req.body.remarks || `Claim rejected for ${claimant ? claimant.name : 'claimant'}`
+            });
         }
 
         // Notify the claimant (requester)
