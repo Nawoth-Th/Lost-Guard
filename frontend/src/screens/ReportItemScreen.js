@@ -140,7 +140,7 @@ const ReportItemScreen = ({ navigation }) => {
 
             await api.post('/items', itemData);
             
-            Alert.alert('Success', 'Item reported successfully!', [
+            Alert.alert('Success', 'Thank you for your report! It has been submitted successfully.', [
                 { text: 'OK', onPress: () => navigation.navigate('Home') }
             ]);
         } catch (error) {

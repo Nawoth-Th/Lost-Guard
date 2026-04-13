@@ -91,7 +91,7 @@ const ClaimScreen = ({ route, navigation }) => {
                 verificationAnswer,
             });
 
-            Alert.alert('Success', 'Claim submitted successfully! The owner will review your request.', [
+            Alert.alert('Success', 'Thank you for your claim request! It has been submitted successfully. The owner will review your request.', [
                 { text: 'OK', onPress: () => navigation.navigate('Home') }
             ]);
         } catch (error) {

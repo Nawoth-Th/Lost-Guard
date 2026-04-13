@@ -140,6 +140,30 @@ const ItemDetailScreen = ({ route, navigation }) => {
         }
     };
 
+    const handleArchive = () => {
+        Alert.alert(
+            "Item Found",
+            "Are you sure you want to mark this item as found? It will be archived.",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Yes, I found it", 
+                    onPress: async () => {
+                        try {
+                            const { data } = await api.put(`/items/${id}/status`, { status: 'Recovered' });
+                            setItem(data);
+                            fetchStatusLogs();
+                            Alert.alert('Success', 'Item archived successfully!');
+                        } catch (error) {
+                            console.error('Archive Error:', error.response?.data?.message || error.message);
+                            Alert.alert('Error', 'Failed to archive item.');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const handleHubToggle = () => {
         if (!item.isAtHub) {
             // Alert.prompt is iOS only. For a universal fix, we'll use Alert to confirm
@@ -357,7 +381,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     </View>
 
                     <View style={styles.actions}>
-                        {item.type === 'Found' && item.status !== 'Recovered' && (
+                        {item.type === 'Found' && item.status !== 'Recovered' && item.user?._id !== userInfo?._id && (
                             <TouchableOpacity 
                                 style={[
                                     styles.actionButtonMain, 
@@ -377,6 +401,23 @@ const ItemDetailScreen = ({ route, navigation }) => {
                                     <Text style={styles.actionText}>
                                         {hasClaimed ? 'Already sent a claim request' : 'Claim This Item'}
                                     </Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        )}
+
+                        {item.type === 'Lost' && item.status !== 'Recovered' && item.user?._id === userInfo?._id && (
+                            <TouchableOpacity 
+                                style={[styles.actionButtonMain, { marginBottom: 12 }]} 
+                                onPress={handleArchive}
+                            >
+                                <LinearGradient
+                                    colors={['#10b981', '#059669']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.actionGradient}
+                                >
+                                    <CheckCircle2 color="#fff" size={20} style={{ marginRight: 8 }} />
+                                    <Text style={styles.actionText}>I found that item</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         )}

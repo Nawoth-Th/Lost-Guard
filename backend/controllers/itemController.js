@@ -345,13 +345,19 @@ const getMyItems = async (req, res) => {
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
         
         const items = await Item.find({ 
-            $or: [
-                { user: req.user._id },
-                { _id: { $in: claimedItemIds } }
-            ],
-            $or: [
-                { status: { $nin: ['Recovered', 'Closed'] } },
-                { status: { $in: ['Recovered', 'Closed'] }, updatedAt: { $gt: oneHourAgo } }
+            $and: [
+                {
+                    $or: [
+                        { user: req.user._id },
+                        { _id: { $in: claimedItemIds } }
+                    ]
+                },
+                {
+                    $or: [
+                        { status: { $nin: ['Recovered', 'Closed'] } },
+                        { status: { $in: ['Recovered', 'Closed'] }, updatedAt: { $gt: oneHourAgo } }
+                    ]
+                }
             ]
         }).sort({ createdAt: -1 });
         
@@ -374,12 +380,16 @@ const getArchivedItems = async (req, res) => {
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
         
         const items = await Item.find({ 
-            $or: [
-                { user: req.user._id },
-                { _id: { $in: claimedItemIds } }
-            ],
-            status: { $in: ['Recovered', 'Closed'] },
-            updatedAt: { $lte: oneHourAgo }
+            $and: [
+                {
+                    $or: [
+                        { user: req.user._id },
+                        { _id: { $in: claimedItemIds } }
+                    ]
+                },
+                { status: { $in: ['Recovered', 'Closed'] } },
+                { updatedAt: { $lte: oneHourAgo } }
+            ]
         }).sort({ updatedAt: -1 });
         
         res.json(items);
