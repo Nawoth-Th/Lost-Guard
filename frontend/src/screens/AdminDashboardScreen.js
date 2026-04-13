@@ -23,6 +23,8 @@ const AdminDashboardScreen = ({ navigation }) => {
     const [showUserEditModal, setShowUserEditModal] = useState(false);
     const [modalType, setModalType] = useState(''); // 'category', 'location', 'hub'
     const [editItem, setEditItem] = useState(null);
+    const [selectedClaim, setSelectedClaim] = useState(null);
+    const [showClaimDetailModal, setShowClaimDetailModal] = useState(false);
     const [selectedUserItems, setSelectedUserItems] = useState([]);
 
     // Form states
@@ -238,11 +240,14 @@ const AdminDashboardScreen = ({ navigation }) => {
         return (
             <GlassCard style={styles.claimCard}>
                 <View style={styles.claimHeader}>
-                    <View style={styles.userInfo}>
-                        <View style={styles.avatarMini}>
-                            <User size={12} color={Theme.colors.primary} />
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.userInfo}>
+                            <View style={styles.avatarMini}>
+                                <User size={12} color={Theme.colors.primary} />
+                            </View>
+                            <Text style={styles.userName} numberOfLines={1}>{claim.requester.name}</Text>
                         </View>
-                        <Text style={styles.userName}>{claim.requester.name}</Text>
+                        <Text style={styles.metaSub} numberOfLines={1}>{claim.requester.email}</Text>
                     </View>
                     <View style={[styles.statusBadge, { 
                         backgroundColor: claim.status === 'Pending' ? 'rgba(251, 191, 36, 0.1)' : 
@@ -262,29 +267,38 @@ const AdminDashboardScreen = ({ navigation }) => {
 
                 <View style={styles.itemRef}>
                     <Package size={14} color={Theme.colors.textMuted} />
-                    <Text style={styles.itemTitle}>Item: {claim.item?.title || 'Unknown'}</Text>
+                    <Text style={styles.itemTitle} numberOfLines={1}>Item: {claim.item?.title || 'Unknown'}</Text>
                 </View>
 
-                <Text style={styles.message}>{claim.message}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                    <TouchableOpacity 
+                        style={styles.detailsBtn}
+                        onPress={() => {
+                            setSelectedClaim(claim);
+                            setShowClaimDetailModal(true);
+                        }}
+                    >
+                        <Search size={14} color={Theme.colors.primary} />
+                        <Text style={styles.detailsBtnText}>Review Details</Text>
+                    </TouchableOpacity>
 
-                {claim.status === 'Pending' && (
-                    <View style={styles.actions}>
-                        <TouchableOpacity 
-                            style={[styles.actionBtn, styles.rejectBtn]} 
-                            onPress={() => handleUpdateStatus(claim._id, 'Rejected')}
-                        >
-                            <XCircle size={18} color="#ef4444" />
-                            <Text style={styles.rejectText}>Reject</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={[styles.actionBtn, styles.approveBtn]} 
-                            onPress={() => handleUpdateStatus(claim._id, 'Approved')}
-                        >
-                            <CheckCircle size={18} color="#10b981" />
-                            <Text style={styles.approveText}>Approve</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                    {claim.status === 'Pending' && (
+                        <View style={styles.actionsSmall}>
+                            <TouchableOpacity 
+                                style={styles.actionIconBtn} 
+                                onPress={() => handleUpdateStatus(claim._id, 'Rejected')}
+                            >
+                                <XCircle size={20} color="#ef4444" />
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={styles.actionIconBtn} 
+                                onPress={() => handleUpdateStatus(claim._id, 'Approved')}
+                            >
+                                <CheckCircle size={20} color="#10b981" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
             </GlassCard>
         );
     };
@@ -618,6 +632,81 @@ const AdminDashboardScreen = ({ navigation }) => {
                                     <Text style={styles.emptySubText}>This user has no active listings.</Text>
                                 }
                             />
+                        </GlassCard>
+                    </BlurView>
+                )}
+
+                {/* Claim Detail Modal */}
+                {showClaimDetailModal && selectedClaim && (
+                    <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
+                        <GlassCard style={[styles.modalContent, { maxHeight: '85%', backgroundColor: Theme.colors.modalBg }]}>
+                            <View style={styles.modalHeaderRow}>
+                                <Text style={styles.modalTitle}>Review Request</Text>
+                                <TouchableOpacity onPress={() => setShowClaimDetailModal(false)}>
+                                    <XCircle size={24} color={Theme.colors.textMuted} />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <View style={styles.detailSection}>
+                                    <Text style={styles.sectionLabel}>Claimant Identity</Text>
+                                    <View style={styles.detailCard}>
+                                        <Text style={styles.detailMain}>{selectedClaim.requester.name}</Text>
+                                        <Text style={styles.detailSub}>{selectedClaim.requester.email}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.detailSection}>
+                                    <Text style={styles.sectionLabel}>Referenced Item</Text>
+                                    <View style={styles.detailCard}>
+                                        <Text style={styles.detailMain}>{selectedClaim.item?.title}</Text>
+                                        <Text style={styles.detailSub}>{selectedClaim.item?.category} • {selectedClaim.item?.type}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.detailSection}>
+                                    <Text style={styles.sectionLabel}>Verifying Message</Text>
+                                    <GlassCard style={styles.messageBox}>
+                                        <Text style={styles.messageTextLong}>{selectedClaim.message}</Text>
+                                    </GlassCard>
+                                </View>
+
+                                {selectedClaim.proofImage && (
+                                    <View style={styles.detailSection}>
+                                        <Text style={styles.sectionLabel}>Visual Proof</Text>
+                                        <Image 
+                                            source={{ uri: selectedClaim.proofImage }} 
+                                            style={styles.proofImageLarge}
+                                            resizeMode="cover"
+                                        />
+                                    </View>
+                                )}
+                            </ScrollView>
+
+                            {selectedClaim.status === 'Pending' && (
+                                <View style={styles.modalActions}>
+                                    <TouchableOpacity 
+                                        style={[styles.modalBtn, styles.rejectBtnLarge]} 
+                                        onPress={() => {
+                                            handleUpdateStatus(selectedClaim._id, 'Rejected');
+                                            setShowClaimDetailModal(false);
+                                        }}
+                                    >
+                                        <XCircle size={20} color="#fff" />
+                                        <Text style={styles.btnTextWhite}>Reject Request</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                        style={[styles.modalBtn, styles.approveBtnLarge]} 
+                                        onPress={() => {
+                                            handleUpdateStatus(selectedClaim._id, 'Approved');
+                                            setShowClaimDetailModal(false);
+                                        }}
+                                    >
+                                        <CheckCircle size={20} color="#fff" />
+                                        <Text style={styles.btnTextWhite}>Approve Request</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
                         </GlassCard>
                     </BlurView>
                 )}
@@ -994,6 +1083,91 @@ const styles = StyleSheet.create({
     },
     typeBtnTextActive: {
         color: '#fff',
+    },
+    detailsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        borderRadius: 8,
+        borderWidth: 0.5,
+        borderColor: 'rgba(99, 102, 241, 0.2)',
+    },
+    detailsBtnText: {
+        color: Theme.colors.primary,
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    actionsSmall: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    actionIconBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+    },
+    detailSection: {
+        marginBottom: 16,
+    },
+    sectionLabel: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        marginBottom: 8,
+        marginLeft: 4,
+    },
+    detailCard: {
+        padding: 12,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderRadius: 12,
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+    },
+    detailMain: {
+        color: Theme.colors.text,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    detailSub: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
+    },
+    messageBox: {
+        padding: 12,
+        backgroundColor: 'rgba(255,255,255,0.02)',
+    },
+    messageTextLong: {
+        color: Theme.colors.text,
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    proofImageLarge: {
+        width: '100%',
+        height: 200,
+        borderRadius: 12,
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+    },
+    rejectBtnLarge: {
+        backgroundColor: '#ef4444',
+        flex: 1,
+    },
+    approveBtnLarge: {
+        backgroundColor: '#10b981',
+        flex: 1,
+    },
+    btnTextWhite: {
+        color: '#fff',
+        fontWeight: 'bold',
     }
 });
 
