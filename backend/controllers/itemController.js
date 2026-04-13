@@ -313,7 +313,8 @@ const updateItemHub = async (req, res) => {
             res.status(404).json({ message: 'Item not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Update Item Hub Error:', error.message);
+        res.status(500).json({ message: error.message || 'Server Error updating hub status' });
     }
 };
 

@@ -18,16 +18,22 @@ const getHubs = async (req, res) => {
 const createHub = async (req, res) => {
     try {
         const { name, location, description } = req.body;
+
+        if (!name || !location) {
+            return res.status(400).json({ message: 'Name and location are required' });
+        }
+
         const hubExists = await Hub.findOne({ name });
 
         if (hubExists) {
-            return res.status(400).json({ message: 'Hub already exists' });
+            return res.status(400).json({ message: 'A hub with this name already exists' });
         }
 
         const hub = await Hub.create({ name, location, description });
         res.status(201).json(hub);
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Create Hub Error:', error.message);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -49,7 +55,8 @@ const updateHub = async (req, res) => {
             res.status(404).json({ message: 'Hub not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Update Hub Error:', error.message);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -61,12 +68,13 @@ const deleteHub = async (req, res) => {
         const hub = await Hub.findByIdAndDelete(req.params.id);
 
         if (hub) {
-            res.json({ message: 'Hub removed' });
+            res.json({ message: 'Hub removed successfully' });
         } else {
             res.status(404).json({ message: 'Hub not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Delete Hub Error:', error.message);
+        res.status(500).json({ message: error.message || 'Server Error' });
     }
 };
 

@@ -134,8 +134,11 @@ const ItemDetailScreen = ({ route, navigation }) => {
         useCallback(() => {
             if (id) {
                 fetchClaimStatus();
+                if (userInfo?.isAdmin) {
+                    fetchAvailableHubs();
+                }
             }
-        }, [id])
+        }, [id, userInfo])
     );
 
     const toggleHubStatus = async (hubName = '') => {
@@ -330,7 +333,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                             >
                                 <ShieldCheck size={20} color="#fff" />
                                 <Text style={styles.hubToggleText}>
-                                    {item.isAtHub ? 'Release from Hub' : 'Secure at Hub'}
+                                    {item.isAtHub ? 'Release from Verified Hub' : 'Secure at Verified Hub'}
                                 </Text>
                             </TouchableOpacity>
                         </GlassCard>
@@ -457,9 +460,9 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     <GlassCard style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <ShieldCheck color={Theme.colors.primary} size={24} />
-                            <Text style={styles.modalTitle}>Select Secure Hub</Text>
+                            <Text style={styles.modalTitle}>Select Verified Hub</Text>
                         </View>
-                        <Text style={styles.modalSub}>Choose where this item is being secured:</Text>
+                        <Text style={styles.modalSub}>Choose the official secure location where this item is being held:</Text>
                         
                         <ScrollView style={{ maxHeight: 300, marginVertical: 15 }} showsVerticalScrollIndicator={false}>
                             {availableHubs.map((hub) => (

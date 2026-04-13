@@ -108,7 +108,7 @@ const AdminDashboardScreen = ({ navigation }) => {
             
             let payload;
             if (modalType === 'category') {
-                payload = { name: fName, description: fDesc, icon: fFIcon };
+                payload = { name: fName, description: fDesc, icon: fIcon };
             } else if (modalType === 'location') {
                 payload = { name: fName, block: fBlock, category: fType };
             } else {
@@ -483,7 +483,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                     <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
                         <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.modalBg }]}>
                             <Text style={styles.modalTitle}>
-                                {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : modalType === 'location' ? 'Location' : 'Hub'}
+                                {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : modalType === 'location' ? 'Location' : 'Verified Hub'}
                             </Text>
                             
                             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
@@ -535,7 +535,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                                 ) : (
                                     <>
                                         <GlassInput
-                                            placeholder="Hub Name"
+                                            placeholder="Hub Name (e.g. Student Center)"
                                             value={fName}
                                             onChangeText={setFName}
                                         />
