@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Alert, Activ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { ChevronLeft, ShieldCheck, CheckCircle, XCircle, User, Package, Plus, Trash2, Edit2, MapPin, Tag } from 'lucide-react-native';
+import { ChevronLeft, ShieldCheck, CheckCircle, XCircle, User, Package, Plus, Trash2, Edit2, MapPin, Tag, Search } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
@@ -194,7 +194,7 @@ const AdminDashboardScreen = ({ navigation }) => {
             setSelectedUserItems(data);
             setShowUserItemsModal(true);
         } catch (error) {
-            Alert.alert('Error', 'Failed to fetch user items.');
+            showGlassAlert('Error', 'Failed to fetch user items.', [], { type: 'error' });
         } finally {
             setLoading(false);
         }
