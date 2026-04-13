@@ -207,17 +207,23 @@ const deleteItem = async (req, res) => {
         const item = await Item.findById(req.params.id);
 
         if (item) {
+            // Verify ownership or Admin rights
             if (item.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-                return res.status(401).json({ message: 'Not authorized' });
+                return res.status(401).json({ message: 'Not authorized - Ownership mismatch' });
             }
 
+            // Remove associated StatusLogs
+            await StatusLog.deleteMany({ item: item._id });
+            // Remove associated Claims
+            await Claim.deleteMany({ item: item._id });
+
             await item.deleteOne();
-            res.json({ message: 'Item removed' });
+            res.json({ message: 'Item and associated records successfully removed' });
         } else {
             res.status(404).json({ message: 'Item not found' });
         }
     } catch (error) {
-        console.error('Delete Item Error:', error);
+        console.error('Delete Item Error:', error.message);
         res.status(500).json({ message: error.message || 'Server Error' });
     }
 };

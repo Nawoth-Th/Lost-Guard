@@ -194,16 +194,17 @@ const AdminDashboardScreen = ({ navigation }) => {
     const handleDeleteUserItem = async (itemId) => {
         Alert.alert(
             "Confirm Delete",
-            "Are you sure you want to delete this listing?",
+            "Are you sure you want to delete this listing permanently?",
             [
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: async () => {
                     try {
                         await api.delete(`/items/${itemId}`);
                         setSelectedUserItems(prev => prev.filter(i => i._id !== itemId));
-                        Alert.alert('Success', 'Item deleted.');
+                        Alert.alert('Deleted', 'Listing has been removed from the system.');
                     } catch (error) {
-                        Alert.alert('Error', 'Failed to delete item.');
+                        console.error('Delete Item Error:', error.response?.data?.message || error.message);
+                        Alert.alert('Error', 'Failed to delete listing.');
                     }
                 }}
             ]
@@ -864,6 +865,10 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: 'bold',
         marginBottom: 4,
+    },
+    metaText: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
     },
     modalHeaderRow: {
         flexDirection: 'row',
