@@ -31,6 +31,7 @@ app.use('/api/locations', require('./routes/locationRoutes'));
 app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/hubs', require('./routes/hubRoutes'));
 
 // Basic Route
 app.get('/', (req, res) => {

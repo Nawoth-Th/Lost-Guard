@@ -23,6 +23,8 @@ const ItemDetailScreen = ({ route, navigation }) => {
     const [logsLoading, setLogsLoading] = useState(false);
     const [hasClaimed, setHasClaimed] = useState(false);
     const [claimStatus, setClaimStatus] = useState(null);
+    const [availableHubs, setAvailableHubs] = useState([]);
+    const [showHubModal, setShowHubModal] = useState(false);
 
     const fetchItemDetails = async () => {
         try {
@@ -61,8 +63,16 @@ const ItemDetailScreen = ({ route, navigation }) => {
         }
     };
 
+    const fetchAvailableHubs = async () => {
+        try {
+            const { data } = await api.get('/hubs');
+            setAvailableHubs(data);
+        } catch (error) {
+            console.error('Fetch Hubs Error:', error.message);
+        }
+    };
+
     const fetchStatusLogs = async () => {
-        // Only fetch if reporter or admin
         const isReporter = item && userInfo && item.user?._id === userInfo._id;
         const isAdmin = userInfo && userInfo.isAdmin;
 
@@ -81,7 +91,10 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
     useEffect(() => {
         fetchItemDetails();
-    }, [id]);
+        if (userInfo?.isAdmin) {
+            fetchAvailableHubs();
+        }
+    }, [id, userInfo]);
 
     useEffect(() => {
         const sub = DeviceEventEmitter.addListener('ITEM_SHARE', handleShare);
@@ -116,7 +129,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
         navigation.navigate('Claim', { item: item });
     };
 
-    // Refresh data on screen focus
     useFocusEffect(
         useCallback(() => {
             if (id) {
@@ -166,20 +178,19 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
     const handleHubToggle = () => {
         if (!item.isAtHub) {
-            // Alert.prompt is iOS only. For a universal fix, we'll use Alert to confirm
-            // and then Admin can update Hub name via a secondary input if needed.
-            // But for this project, let's keep it simple with Alert.alert if Android.
-            
-            Alert.alert(
-                "Verify Drop-off",
-                "Is this item secured at the University Security Gate?",
-                [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "Confirm", onPress: () => toggleHubStatus('Main Security Gate (NAB)') }
-                ]
-            );
+            if (availableHubs.length > 0) {
+                setShowHubModal(true);
+            } else {
+                Alert.alert(
+                    "Verify Drop-off",
+                    "Is this item secured at the University Security Gate? (No other hubs defined)",
+                    [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Confirm", onPress: () => toggleHubStatus('Main Security Gate (NAB)') }
+                    ]
+                );
+            }
         } else {
-            // If releasing
             Alert.alert(
                 "Release Item",
                 "Are you sure you want to release this item from the hub?",
@@ -231,7 +242,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <View style={{ height: 100 }} /> {/* Spacer for global FloatingHeader */}
+                <View style={{ height: 100 }} />
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                     <View style={styles.imageContainer}>
@@ -436,6 +447,44 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     </View>
                 </ScrollView>
             </SafeAreaView>
+
+            {showHubModal && (
+                <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
+                    <GlassCard style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <ShieldCheck color={Theme.colors.primary} size={24} />
+                            <Text style={styles.modalTitle}>Select Secure Hub</Text>
+                        </View>
+                        <Text style={styles.modalSub}>Choose where this item is being secured:</Text>
+                        
+                        <ScrollView style={{ maxHeight: 300, marginVertical: 15 }} showsVerticalScrollIndicator={false}>
+                            {availableHubs.map((hub) => (
+                                <TouchableOpacity 
+                                    key={hub._id} 
+                                    style={styles.hubItem}
+                                    onPress={() => {
+                                        setShowHubModal(false);
+                                        toggleHubStatus(hub.name);
+                                    }}
+                                >
+                                    <View>
+                                        <Text style={styles.hubName}>{hub.name}</Text>
+                                        <Text style={styles.hubLoc}>{hub.location}</Text>
+                                    </View>
+                                    <ChevronLeft size={18} color={Theme.colors.textMuted} style={{ transform: [{ rotate: '180deg' }] }} />
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+
+                        <TouchableOpacity 
+                            style={styles.modalCloseBtn}
+                            onPress={() => setShowHubModal(false)}
+                        >
+                            <Text style={styles.modalCloseText}>Cancel</Text>
+                        </TouchableOpacity>
+                    </GlassCard>
+                </BlurView>
+            )}
         </View>
     );
 };
@@ -448,28 +497,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: Theme.spacing.l,
-        height: 60,
-    },
-    headerButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: Theme.colors.glass,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 0.5,
-        borderColor: Theme.colors.glassBorder,
-    },
-    headerTitle: {
-        color: Theme.colors.text,
-        fontSize: Theme.fontSizes.l,
-        fontWeight: 'bold',
     },
     scrollContent: {
         padding: Theme.spacing.l,
@@ -643,7 +670,7 @@ const styles = StyleSheet.create({
     actionText: {
         color: '#fff',
         fontWeight: 'bold',
-        fontSize: Theme.fontSizes.m,
+        fontSize: 16,
     },
     logsSection: {
         marginBottom: Theme.spacing.xl,

@@ -14,13 +14,14 @@ const AdminDashboardScreen = ({ navigation }) => {
     const [claims, setClaims] = useState([]);
     const [categories, setCategories] = useState([]);
     const [locations, setLocations] = useState([]);
+    const [hubs, setHubs] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [showUserItemsModal, setShowUserItemsModal] = useState(false);
     const [showUserEditModal, setShowUserEditModal] = useState(false);
-    const [modalType, setModalType] = useState(''); // 'category' or 'location'
+    const [modalType, setModalType] = useState(''); // 'category', 'location', 'hub'
     const [editItem, setEditItem] = useState(null);
     const [selectedUserItems, setSelectedUserItems] = useState([]);
 
@@ -28,6 +29,8 @@ const AdminDashboardScreen = ({ navigation }) => {
     const [catName, setCatName] = useState('');
     const [locName, setLocName] = useState('');
     const [locBlock, setLocBlock] = useState('');
+    const [hubLoc, setHubLoc] = useState('');
+    const [hubDesc, setHubDesc] = useState('');
     const [editUserForm, setEditUserForm] = useState({ name: '', email: '', isAdmin: false });
 
     const fetchData = async () => {
@@ -42,6 +45,9 @@ const AdminDashboardScreen = ({ navigation }) => {
             } else if (activeTab === 'Locations') {
                 const { data } = await api.get('/locations');
                 setLocations(data);
+            } else if (activeTab === 'Hubs') {
+                const { data } = await api.get('/hubs');
+                setHubs(data);
             } else if (activeTab === 'Users') {
                 const { data } = await api.get('/users');
                 setUsers(data);
@@ -62,12 +68,14 @@ const AdminDashboardScreen = ({ navigation }) => {
 
     useEffect(() => {
         const sub = DeviceEventEmitter.addListener('MODERATION_ADD', () => {
-            if (activeTab === 'Categories' || activeTab === 'Locations') {
-                setModalType(activeTab === 'Categories' ? 'category' : 'location');
+            if (activeTab === 'Categories' || activeTab === 'Locations' || activeTab === 'Hubs') {
+                setModalType(activeTab === 'Categories' ? 'category' : activeTab === 'Locations' ? 'location' : 'hub');
                 setEditItem(null);
                 setCatName('');
                 setLocName('');
                 setLocBlock('');
+                setHubLoc('');
+                setHubDesc('');
                 setShowModal(true);
             }
         });
@@ -91,8 +99,16 @@ const AdminDashboardScreen = ({ navigation }) => {
 
     const handleSaveMetadata = async () => {
         try {
-            const endpoint = modalType === 'category' ? '/categories' : '/locations';
-            const payload = modalType === 'category' ? { name: catName } : { name: locName, block: locBlock };
+            const endpoint = modalType === 'category' ? '/categories' : modalType === 'location' ? '/locations' : '/hubs';
+            
+            let payload;
+            if (modalType === 'category') {
+                payload = { name: catName };
+            } else if (modalType === 'location') {
+                payload = { name: locName, block: locBlock };
+            } else {
+                payload = { name: catName, location: hubLoc, description: hubDesc };
+            }
             
             if (editItem) {
                 await api.put(`${endpoint}/${editItem._id}`, payload);
@@ -105,6 +121,8 @@ const AdminDashboardScreen = ({ navigation }) => {
             setCatName('');
             setLocName('');
             setLocBlock('');
+            setHubLoc('');
+            setHubDesc('');
             fetchData();
             Alert.alert('Success', `${modalType} saved successfully.`);
         } catch (error) {
@@ -120,7 +138,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: async () => {
                     try {
-                        const endpoint = type === 'category' ? `/categories/${id}` : `/locations/${id}`;
+                        const endpoint = type === 'category' ? `/categories/${id}` : type === 'location' ? `/locations/${id}` : `/hubs/${id}`;
                         await api.delete(endpoint);
                         fetchData();
                     } catch (error) {
@@ -197,9 +215,13 @@ const AdminDashboardScreen = ({ navigation }) => {
         setEditItem(item);
         if (type === 'category') {
             setCatName(item.name);
-        } else {
+        } else if (type === 'location') {
             setLocName(item.name);
             setLocBlock(item.block);
+        } else if (type === 'hub') {
+            setCatName(item.name);
+            setHubLoc(item.location);
+            setHubDesc(item.description);
         }
         setShowModal(true);
     };
@@ -296,6 +318,26 @@ const AdminDashboardScreen = ({ navigation }) => {
         </GlassCard>
     );
 
+    const renderHub = ({ item }) => (
+        <GlassCard style={styles.metaCard}>
+            <View style={styles.metaInfo}>
+                <ShieldCheck size={18} color={Theme.colors.primary} />
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.metaTitle}>{item.name}</Text>
+                    <Text style={styles.metaSub}>{item.location}</Text>
+                </View>
+            </View>
+            <View style={styles.metaActions}>
+                <TouchableOpacity onPress={() => openEditModal(item, 'hub')}>
+                    <Edit2 size={18} color={Theme.colors.textMuted} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteMetadata(item._id, 'hub')}>
+                    <Trash2 size={18} color="#ef4444" />
+                </TouchableOpacity>
+            </View>
+        </GlassCard>
+    );
+
     const renderUser = ({ item: user }) => (
         <GlassCard style={styles.metaCard}>
             <View style={styles.metaInfo}>
@@ -350,7 +392,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                 <View style={styles.tabsWrap}>
                     <FlatList
                         horizontal
-                        data={['Claims', 'Categories', 'Locations', 'Users']}
+                        data={['Claims', 'Categories', 'Locations', 'Hubs', 'Users']}
                         keyExtractor={item => item}
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.tabs}
@@ -371,8 +413,20 @@ const AdminDashboardScreen = ({ navigation }) => {
                     </View>
                 ) : (
                     <FlatList
-                        data={activeTab === 'Claims' ? claims : activeTab === 'Categories' ? categories : activeTab === 'Locations' ? locations : users}
-                        renderItem={activeTab === 'Claims' ? renderClaim : activeTab === 'Categories' ? renderCategory : activeTab === 'Locations' ? renderLocation : renderUser}
+                        data={
+                            activeTab === 'Claims' ? claims : 
+                            activeTab === 'Categories' ? categories : 
+                            activeTab === 'Locations' ? locations : 
+                            activeTab === 'Hubs' ? hubs : 
+                            users
+                        }
+                        renderItem={
+                            activeTab === 'Claims' ? renderClaim : 
+                            activeTab === 'Categories' ? renderCategory : 
+                            activeTab === 'Locations' ? renderLocation : 
+                            activeTab === 'Hubs' ? renderHub : 
+                            renderUser
+                        }
                         keyExtractor={item => item._id}
                         contentContainerStyle={styles.listContent}
                         refreshControl={
@@ -392,7 +446,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                     <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
                         <GlassCard style={[styles.modalContent, { backgroundColor: Theme.colors.modalBg }]}>
                             <Text style={styles.modalTitle}>
-                                {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : 'Location'}
+                                {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : modalType === 'location' ? 'Location' : 'Hub'}
                             </Text>
                             
                             {modalType === 'category' ? (
@@ -401,7 +455,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                                     value={catName}
                                     onChangeText={setCatName}
                                 />
-                            ) : (
+                            ) : modalType === 'location' ? (
                                 <>
                                     <GlassInput
                                         placeholder="Location Name"
@@ -412,6 +466,24 @@ const AdminDashboardScreen = ({ navigation }) => {
                                         placeholder="Block (e.g. NAB, Computing)"
                                         value={locBlock}
                                         onChangeText={setLocBlock}
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <GlassInput
+                                        placeholder="Hub Name"
+                                        value={catName}
+                                        onChangeText={setCatName}
+                                    />
+                                    <GlassInput
+                                        placeholder="Exact Location"
+                                        value={hubLoc}
+                                        onChangeText={setHubLoc}
+                                    />
+                                    <GlassInput
+                                        placeholder="Description (Optional)"
+                                        value={hubDesc}
+                                        onChangeText={setHubDesc}
                                     />
                                 </>
                             )}
