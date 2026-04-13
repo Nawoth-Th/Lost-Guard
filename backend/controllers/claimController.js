@@ -151,6 +151,30 @@ const updateClaimStatus = async (req, res) => {
                     changedBy: req.user._id,
                     remarks: req.body.remarks || `Claim approved for ${claimant ? claimant.name : 'claimant'}`
                 });
+
+                // 🔄 Automated Parallel Archival: If claimant has a matching "Lost" item, archive it too
+                try {
+                    const matchingLostItem = await Item.findOne({
+                        user: claim.requester,
+                        type: 'Lost',
+                        category: item.category,
+                        status: 'Pending'
+                    });
+
+                    if (matchingLostItem) {
+                        matchingLostItem.status = 'Recovered';
+                        await matchingLostItem.save();
+
+                        await StatusLog.create({
+                            item: matchingLostItem._id,
+                            status: 'Recovered (Auto)',
+                            changedBy: req.user._id,
+                            remarks: `Automatically archived as it matches the recovered item: "${item.title}"`
+                        });
+                    }
+                } catch (parallelErr) {
+                    console.error('Parallel Archival Error (non-fatal):', parallelErr.message);
+                }
             }
         } else if (status === 'Rejected') {
             // ⏱️ Create StatusLog entry for the timeline on rejection
