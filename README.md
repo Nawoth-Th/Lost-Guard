@@ -1,106 +1,183 @@
-# 🛡️ Lost Guard - Advanced University Recovery Platform
+# 🛡️ Lost Guard - Advanced University Lost & Found App
 
 ![Lost Guard Banner](./frontend/assets/lostguardbanner.png)
 
-**Lost Guard** is a premium, full-stack campus utility designed to reconnect students with lost belongings through intelligent matching, secure verification, and real-time physical tracking. It transforms the traditional "lost and found" into a high-trust community ecosystem.
+**Lost Guard** is a premium, campus-aware full-stack platform designed to reconnect students and staff with their lost belongings through intelligent matching, secure blind-question verification, and real-time community trust.
 
 ![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/expo-1C1E24?style=for-the-badge&logo=expo&logoColor=#D04A37)
 ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
+![Heroku](https://img.shields.io/badge/Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white)
+![DigitalOcean](https://img.shields.io/badge/DigitalOcean-%230167ff.svg?style=for-the-badge&logo=digitalOcean&logoColor=white)
 
 ---
 
-## 💎 Premium "Level-Up" Features
+## 🌟 Advanced University Features
 
 ### 🧠 Smart Campus Matching Engine
 
-Our proprietary algorithm automatically suggests "Found" items to users based on **Category + Location Block** precision (e.g., NAB, Computing, Engineering). If you lose a "Blue Bottle" in "NAB Block B", the system alerts you the moment one is reported.
+Automatically suggests "Found" items to users based on specific SLIIT Malabe Blocks (e.g., NAB, Computing, Engineering). The matching algorithm uses **Category + Location Block** precision to increase recovery rates.
 
 ### 🔒 Blind Question Verification
 
-Secure your found items with a challenge. Reporters set a security question (e.g., *"What sticker is on the back?"*). Claimants must provide the correct answer before they can see your contact details, preventing spam and false claims.
+Secure your found items with a challenge. Reporters can set a security question (e.g., *"What sticker is on the back?"*). Claimants must provide the correct answer before they can proceed with a formal claim.
 
-### 📍 Verified Drop-off Hubs
+### 🏆 Guardian Leaderboard
 
-Items can be marked as **"Secured at Hub"** (e.g., Security Gate 1, Student Affairs). A shield badge on the listing ensures students that their item is safe and ready for physical pickup. Admins manage these official drop-off points live.
+Gamifying honesty! Users earn **Trust Points** for successful recoveries. The top 10 "Guardians" are showcased on a premium leaderboard to encourage community participation.
 
-### 🏆 Guardian Leaderboard & Trust Scores
+### 📍 Dynamic Metadata Management
 
-Gamifying honesty! Users earn **Trust Points** for successful recoveries and verified drop-offs. The top "Guardians" are showcased on a premium leaderboard to encourage community participation and ethical behavior.
+Campus locations, item categories, and location blocks are fully managed via the **Admin Dashboard**. This allows the platform to adapt to new buildings or categories without code changes.
 
-### 🕰️ Auto-Archiving Vault
+### 🏥 Verified Drop-off Hubs
 
-Once an item is marked as **Recovered**, it enters a 1-hour grace period before being automatically swept into a secure, read-only "Historical Archive" Vault, accessible via the user's profile to keep the main feed clean.
+Items can be marked as **"Secured at Hub"** (e.g., Security Gate 1, Student Affairs). A shield badge on the item ensures the student that their item is safe and ready for pickup.
 
-### 🎨 Premium Glass UI Design System
+### 🕰️ Auto-Archiving Timeline
 
-A state-of-the-art interface utilizing **Blur-Glassmorphism**. Features include:
+Prevents platform clutter. Once an item is successfully marked as recovered, it enters a 1-hour grace timeline before being automatically swept into a secure, read-only "Historical Archives" Vault accessible via the user's profile.
 
-- **GlassAlerts**: Custom themed notification pop-ups standardized across the app.
-- **Floating UI**: Standardized header and persistent navigation menu.
-- **Optimized Rendering**: High-performance layers ensuring 60fps scrolling on iOS and Android.
+### 💎 Premium Experience Architecture
 
----
+#### ☁️ Universal Floating UI
 
-## 🛠️ Core Module Mapping (The 4 Members)
+A standardized, responsive header and menu system that persists across all app states. Features include context-aware action buttons (Dynamic Share, Moderation Add) and high-quality blur-glassmorphism.
 
-| Member | Module | Key Responsibilities |
-| :--- | :--- | :--- |
-| **1** | **Item Management** | CRUD Item Reports, Smart Matching recommendations, Category/Location metadata fetching. |
-| **2** | **Claim & Verification** | Blind Question security logic, Proof image submission, Claim processing life-cycle. |
-| **3** | **Communication** | Real-time finder-claimant messaging, Automated Email matches via Nodemailer. |
-| **4** | **Tracking & Recovery** | Hub status oversight, Trust Score aggregation, Leaderboard engine, Archiving Vault. |
+#### ⚡ Zero-Lag Performance Engine
+
+Deeply optimized startup sequence using staggered data-loading and `InteractionManager` orchestration. The interface remains 100% interactive even while the system processes heavy background data.
+
+#### 🎨 Smart-Blur Styling (Android Optimized)
+
+An intelligent rendering engine that prioritizes visual fidelity on iOS while falling back to high-performance semi-transparent layers for list items on Android, keeping the app smooth at 60fps across all devices.
+
+### 🛡️ Infinite Admin Oversight
+
+Complete CRUD control over user networks. Administrators can intercept, edit, or delete platform users while actively pulling up and wiping out any specific listing attached to a targeted account natively from the dashboard.
 
 ---
 
 ## 🔄 System Workflows
 
-### **The Recovery Lifecycle**
+### **Item Recovery Lifecycle**
 
-1. **Lost Report**: User specifies location block and item category.
-2. **Found Report**: Finder attaches image and sets a unique Blind Question.
-3. **Smart Match**: System alerts the owner via email and in-app "Suggested for You" carousel.
-4. **Claim-Verification**: User answers the Blind Question and submits secondary proof.
-5. **Admin Review**: Admin verifies the physical proof and approves the claim.
-6. **Archived**: After 1 hour of "Recovered" status, the item is moved to the Historical Vault.
+```mermaid
+graph TD
+    A[Lost Item Reported] --> B{Matching Engine}
+    B -- Match Found --> C[Send Email Alert]
+    D[Found Item Reported] --> B
+    D --> E[Set Security Question]
+    F[User Claims Item] --> G{Answer Correct?}
+    G -- No --> H[Claim Rejected]
+    G -- Yes --> I[Admin Review Proof]
+    I --> J[Item Recovered]
+    J --> K[+10 Trust Points]
+```
 
----
+### **Verification Workflow**
 
-## 🛡️ Master Admin Dashboard
-
-The command center for platform administrators:
-
-- **Metadata Management**: Live CRUD for campus buildings, blocks, and item categories.
-- **Hub Control**: Create and monitor official Verified Hubs points.
-- **User Moderation**: Monitor user trust scores and wipe out deceptive listings or fake accounts.
-- **Stability Architecture**: Integrated with a live-sync engine to ensure data consistency across all users.
-
----
-
-## 🌐 Tech Stack & Infrastructure
-
-- **Backend**: Node.js Express Server (Stateless REST Architecture).
-- **Database**: MongoDB Atlas (Managed Cloud Storage).
-- **Storage**: Cloudinary (High-Performance Image Transformation & Storage).
-- **Frontend**: Expo / React Native (Cross-Platform Mobile & Web Native).
-- **Notifications**: Automated NodeMailer university-branded templates.
+1. **Finder**: Sets a "Blind Question" during the found report.
+2. **Claimant**: Must provide the correct string answer to view the owner's contact info.
+3. **Admin**: Validates the secondary physical proof (image) before final closure.
 
 ---
 
-## 🚀 Setup & Deployment
+## 🗄️ Database Architecture (MongoDB Atlas)
 
-1. **Clone the Repository**.
-2. **Backend**:
-   - `cd backend`
-   - `pnpm install`
-   - `pnpm start` (Requires `.env` with MONGO_URI, JWT_SECRET, CLOUDINARY, SMTP)
-3. **Frontend**:
-   - `cd frontend`
-   - `pnpm install`
-   - `pnpm start` (Requires `.env` with EXPO_PUBLIC_API_URL)
+The system utilizes a structured NoSQL schema for high flexibility and performance:
+
+- **`users`**: Authentication, profile data, and the `trustScore` gamification field.
+- **`items`**: Core reports containing `locationBlock`, `isAtHub`, and `verificationQuestion` fields.
+- **`claims`**: Linking users to items with proof and approval statuses.
+- **`categories`**: Dynamic list of item types for filtering.
+- **`locations`**: Campus-specific building and block mapping.
+- **`statusLogs`**: Persistent audit trail for every status change (Reported -> Hub -> Recovered).
+- **`notifications`**: Real-time in-app alerts for matches.
 
 ---
+
+## 👥 Users & Roles
+
+| User Type | Permissions | Description |
+| :--- | :--- | :--- |
+| **User** | Report, Search, Claim, Chat | General students seeking belongings. |
+| **Admin** | User & Metadata CRUD, View/Wipe Listings, Moderate Claims | Campus staff governing the overarching platform. |
+| **Guardian** | Top Ranks, Verified Status | High-trust users with high recovery scores. |
+
+---
+
+## 🚀 Module Mapping
+
+### 🔍 Member 1: Item Management & Discovery
+
+- **Dynamic Categories**: Fetching real-time categories/locations from DB.
+- **Smart Discovery**: "Suggested for You" carousel based on active lost items.
+- **Cloudinary Integration**: Secure, high-performance image hosting.
+
+### 🛡️ Member 2: Claim & Verification
+
+- **Blind Challenge**: Implementation of the security question workflow.
+- **Verification Logic**: Server-side answer validation for claim submissions.
+- **Trust Scores**: Backend logic for calculating and awarding trust points.
+
+### 📧 Member 3: Communication & Notification
+
+- **Watchlist Notifications**: Automated email alerts for category/block matches.
+- **Real-time Chat**: Glassmorphism chat UI for finder-claimant coordination.
+- **Mail Service**: Nodemailer integration with premium university-branded templates.
+
+### 📜 Member 4: Tracking & Recovery
+
+- **Verified Hubs**: Hub tracking system for physical item security.
+- **Status Lifecycle**: Visual audit trail from "Reported" to "Secured at Hub" to "Recovered".
+- **Leaderboard Engine**: Aggregation logic for community rankings.
+
+---
+
+## 🌐 Deployment Architecture
+
+The application is deployed across a high-performance cloud infrastructure, fully supporting cross-platform access:
+
+- **Frontend (Mobile)**: **Expo Cloud (EAS)**. OTA (Over-The-Air) deployment and seamless updates configured via GitHub Actions.
+- **Frontend (Web App)**: **DigitalOcean App Platform**. The project is explicitly configured with `react-native-web` to compile into a highly optimized, responsive Single Page Application (SPA). Web-specific APIs, such as standard `localStorage` security fallbacks and native `Blob` file uploads, ensure a 100% bug-free desktop experience.
+- **Backend API**: **Heroku PaaS**. Running the stateless Node.js Express server.
+- **Database**: **MongoDB Atlas**. Managed cloud database with deep indexing for search.
+- **Storage**: **Cloudinary**. Optimized image transformations and secure file hosting.
+
+---
+
+## 🛠️ Tech Stack & Setup
+
+### **Backend Setup**
+
+1. `cd backend` && `pnpm install`
+2. Configure `.env` with Mongo, JWT, Cloudinary, and SMTP keys.
+3. `pnpm start`
+
+### **Frontend Setup (Mobile & Web)**
+
+1. `cd frontend` && `pnpm install`
+2. Configure `.env` with `EXPO_PUBLIC_API_URL` pointing to Heroku.
+3. For local development: `pnpm start` (press `w` to open the Web App in your browser).
+4. For Production Web Build: `npx expo export` (Requires DigitalOcean or static hosting of the `dist/` directory).
+
+---
+
+## 📂 Database Collections
+
+- `users`: Includes `trustScore`.
+- `items`: Includes `isAtHub`, `hubName`, `verificationQuestion`.
+- `categories`: Dynamic metadata for item groups.
+- `locations`: Campus location mapping with `block` grouping.
+- `statusLogs`: Audit trail for recovery tracking.
+
+---
+
+## 📄 License
+
+2nd Year WMT Module Assigment Submission. Creative Commons Zero v1.0 Universal.
 
 Developed with ❤️ for the University Community.
-2nd Year WMT Module Assignment Submission.
- Creative Commons Zero v1.0 Universal.
