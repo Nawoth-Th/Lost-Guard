@@ -58,10 +58,9 @@ const updateCategory = async (req, res) => {
 // @access  Private/Admin
 const deleteCategory = async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id);
+        const category = await Category.findByIdAndDelete(req.params.id);
 
         if (category) {
-            await category.deleteOne();
             res.json({ message: 'Category removed' });
         } else {
             res.status(404).json({ message: 'Category not found' });

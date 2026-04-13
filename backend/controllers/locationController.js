@@ -58,10 +58,9 @@ const updateLocation = async (req, res) => {
 // @access  Private/Admin
 const deleteLocation = async (req, res) => {
     try {
-        const location = await Location.findById(req.params.id);
+        const location = await Location.findByIdAndDelete(req.params.id);
 
         if (location) {
-            await location.deleteOne();
             res.json({ message: 'Location removed' });
         } else {
             res.status(404).json({ message: 'Location not found' });

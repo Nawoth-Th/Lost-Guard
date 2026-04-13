@@ -26,11 +26,12 @@ const AdminDashboardScreen = ({ navigation }) => {
     const [selectedUserItems, setSelectedUserItems] = useState([]);
 
     // Form states
-    const [catName, setCatName] = useState('');
-    const [locName, setLocName] = useState('');
-    const [locBlock, setLocBlock] = useState('');
-    const [hubLoc, setHubLoc] = useState('');
-    const [hubDesc, setHubDesc] = useState('');
+    const [fName, setFName] = useState('');
+    const [fDesc, setFDesc] = useState('');
+    const [fIcon, setFIcon] = useState('');
+    const [fBlock, setFBlock] = useState('');
+    const [fType, setFType] = useState('Academic'); // For location category
+    const [fLoc, setFLoc] = useState(''); // For hub exact location
     const [editUserForm, setEditUserForm] = useState({ name: '', email: '', isAdmin: false });
 
     const fetchData = async () => {
@@ -71,11 +72,12 @@ const AdminDashboardScreen = ({ navigation }) => {
             if (activeTab === 'Categories' || activeTab === 'Locations' || activeTab === 'Hubs') {
                 setModalType(activeTab === 'Categories' ? 'category' : activeTab === 'Locations' ? 'location' : 'hub');
                 setEditItem(null);
-                setCatName('');
-                setLocName('');
-                setLocBlock('');
-                setHubLoc('');
-                setHubDesc('');
+                setFName('');
+                setFDesc('');
+                setFIcon('');
+                setFBlock('');
+                setFType('Academic');
+                setFLoc('');
                 setShowModal(true);
             }
         });
@@ -103,11 +105,11 @@ const AdminDashboardScreen = ({ navigation }) => {
             
             let payload;
             if (modalType === 'category') {
-                payload = { name: catName };
+                payload = { name: fName, description: fDesc, icon: fFIcon };
             } else if (modalType === 'location') {
-                payload = { name: locName, block: locBlock };
+                payload = { name: fName, block: fBlock, category: fType };
             } else {
-                payload = { name: catName, location: hubLoc, description: hubDesc };
+                payload = { name: fName, location: fLoc, description: fDesc };
             }
             
             if (editItem) {
@@ -118,11 +120,11 @@ const AdminDashboardScreen = ({ navigation }) => {
             
             setShowModal(false);
             setEditItem(null);
-            setCatName('');
-            setLocName('');
-            setLocBlock('');
-            setHubLoc('');
-            setHubDesc('');
+            setFName('');
+            setFDesc('');
+            setFIcon('');
+            setFBlock('');
+            setFLoc('');
             fetchData();
             Alert.alert('Success', `${modalType} saved successfully.`);
         } catch (error) {
@@ -217,14 +219,17 @@ const AdminDashboardScreen = ({ navigation }) => {
         setModalType(type);
         setEditItem(item);
         if (type === 'category') {
-            setCatName(item.name);
+            setFName(item.name);
+            setFDesc(item.description || '');
+            setFIcon(item.icon || '');
         } else if (type === 'location') {
-            setLocName(item.name);
-            setLocBlock(item.block);
+            setFName(item.name);
+            setFBlock(item.block);
+            setFType(item.category || 'Academic');
         } else if (type === 'hub') {
-            setCatName(item.name);
-            setHubLoc(item.location);
-            setHubDesc(item.description);
+            setFName(item.name);
+            setFLoc(item.location);
+            setFDesc(item.description || '');
         }
         setShowModal(true);
     };
@@ -287,8 +292,13 @@ const AdminDashboardScreen = ({ navigation }) => {
     const renderCategory = ({ item }) => (
         <GlassCard style={styles.metaCard}>
             <View style={styles.metaInfo}>
-                <Tag size={18} color={Theme.colors.primary} />
-                <Text style={styles.metaTitle}>{item.name}</Text>
+                <View style={styles.iconBox}>
+                    <Tag size={18} color={Theme.colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.metaTitle}>{item.name}</Text>
+                    {item.description && <Text style={styles.metaSub} numberOfLines={1}>{item.description}</Text>}
+                </View>
             </View>
             <View style={styles.metaActions}>
                 <TouchableOpacity onPress={() => openEditModal(item, 'category')}>
@@ -304,10 +314,12 @@ const AdminDashboardScreen = ({ navigation }) => {
     const renderLocation = ({ item }) => (
         <GlassCard style={styles.metaCard}>
             <View style={styles.metaInfo}>
-                <MapPin size={18} color={Theme.colors.primary} />
-                <View>
+                <View style={styles.iconBox}>
+                    <MapPin size={18} color={Theme.colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
                     <Text style={styles.metaTitle}>{item.name}</Text>
-                    <Text style={styles.metaSub}>Block: {item.block}</Text>
+                    <Text style={styles.metaSub}>{item.block} • {item.category}</Text>
                 </View>
             </View>
             <View style={styles.metaActions}>
@@ -324,10 +336,12 @@ const AdminDashboardScreen = ({ navigation }) => {
     const renderHub = ({ item }) => (
         <GlassCard style={styles.metaCard}>
             <View style={styles.metaInfo}>
-                <ShieldCheck size={18} color={Theme.colors.primary} />
+                <View style={styles.iconBox}>
+                    <ShieldCheck size={18} color={Theme.colors.primary} />
+                </View>
                 <View style={{ flex: 1 }}>
                     <Text style={styles.metaTitle}>{item.name}</Text>
-                    <Text style={styles.metaSub}>{item.location}</Text>
+                    <Text style={styles.metaSub} numberOfLines={1}>{item.location}</Text>
                 </View>
             </View>
             <View style={styles.metaActions}>
@@ -452,44 +466,72 @@ const AdminDashboardScreen = ({ navigation }) => {
                                 {editItem ? 'Edit' : 'Add'} {modalType === 'category' ? 'Category' : modalType === 'location' ? 'Location' : 'Hub'}
                             </Text>
                             
-                            {modalType === 'category' ? (
-                                <GlassInput
-                                    placeholder="Category Name"
-                                    value={catName}
-                                    onChangeText={setCatName}
-                                />
-                            ) : modalType === 'location' ? (
-                                <>
-                                    <GlassInput
-                                        placeholder="Location Name"
-                                        value={locName}
-                                        onChangeText={setLocName}
-                                    />
-                                    <GlassInput
-                                        placeholder="Block (e.g. NAB, Computing)"
-                                        value={locBlock}
-                                        onChangeText={setLocBlock}
-                                    />
-                                </>
-                            ) : (
-                                <>
-                                    <GlassInput
-                                        placeholder="Hub Name"
-                                        value={catName}
-                                        onChangeText={setCatName}
-                                    />
-                                    <GlassInput
-                                        placeholder="Exact Location"
-                                        value={hubLoc}
-                                        onChangeText={setHubLoc}
-                                    />
-                                    <GlassInput
-                                        placeholder="Description (Optional)"
-                                        value={hubDesc}
-                                        onChangeText={setHubDesc}
-                                    />
-                                </>
-                            )}
+                            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
+                                {modalType === 'category' ? (
+                                    <>
+                                        <GlassInput
+                                            placeholder="Category Name (e.g. Electronics)"
+                                            value={fName}
+                                            onChangeText={setFName}
+                                        />
+                                        <GlassInput
+                                            placeholder="Description (Optional)"
+                                            value={fDesc}
+                                            onChangeText={setFDesc}
+                                        />
+                                        <GlassInput
+                                            placeholder="Icon Name (e.g. smartphone)"
+                                            value={fIcon}
+                                            onChangeText={setFIcon}
+                                        />
+                                    </>
+                                ) : modalType === 'location' ? (
+                                    <>
+                                        <GlassInput
+                                            placeholder="Location Name (e.g. Room 201)"
+                                            value={fName}
+                                            onChangeText={setFName}
+                                        />
+                                        <GlassInput
+                                            placeholder="Block (e.g. NAB, Computing)"
+                                            value={fBlock}
+                                            onChangeText={setFBlock}
+                                        />
+                                        <View style={styles.pickerWrap}>
+                                            <Text style={styles.pickerLabel}>Location Type</Text>
+                                            <View style={styles.typeRow}>
+                                                {['Academic', 'Social', 'Facilities', 'Admin'].map(t => (
+                                                    <TouchableOpacity 
+                                                        key={t}
+                                                        style={[styles.typeBtn, fType === t && styles.typeBtnActive]}
+                                                        onPress={() => setFType(t)}
+                                                    >
+                                                        <Text style={[styles.typeBtnText, fType === t && styles.typeBtnTextActive]}>{t}</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        </View>
+                                    </>
+                                ) : (
+                                    <>
+                                        <GlassInput
+                                            placeholder="Hub Name"
+                                            value={fName}
+                                            onChangeText={setFName}
+                                        />
+                                        <GlassInput
+                                            placeholder="Exact Location"
+                                            value={fLoc}
+                                            onChangeText={setFLoc}
+                                        />
+                                        <GlassInput
+                                            placeholder="Description (Optional)"
+                                            value={fDesc}
+                                            onChangeText={setFDesc}
+                                        />
+                                    </>
+                                )}
+                            </ScrollView>
 
                             <View style={styles.modalActions}>
                                 <TouchableOpacity 
@@ -778,17 +820,24 @@ const styles = StyleSheet.create({
         borderColor: Theme.colors.glassBorder,
     },
     metaCard: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
+        padding: 12,
         marginBottom: 12,
     },
     metaInfo: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+    },
+    iconBox: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
     },
     metaTitle: {
         color: Theme.colors.text,
@@ -910,6 +959,41 @@ const styles = StyleSheet.create({
     },
     switchKnobActive: {
         transform: [{ translateX: 22 }],
+    },
+    pickerWrap: {
+        marginTop: 10,
+        marginBottom: 15,
+    },
+    pickerLabel: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
+        marginBottom: 8,
+        marginLeft: 4,
+    },
+    typeRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    typeBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 0.5,
+        borderColor: Theme.colors.glassBorder,
+    },
+    typeBtnActive: {
+        backgroundColor: Theme.colors.primary,
+        borderColor: Theme.colors.primary,
+    },
+    typeBtnText: {
+        color: Theme.colors.textMuted,
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    typeBtnTextActive: {
+        color: '#fff',
     }
 });
 

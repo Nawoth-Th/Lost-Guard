@@ -58,10 +58,9 @@ const updateHub = async (req, res) => {
 // @access  Private/Admin
 const deleteHub = async (req, res) => {
     try {
-        const hub = await Hub.findById(req.params.id);
+        const hub = await Hub.findByIdAndDelete(req.params.id);
 
         if (hub) {
-            await hub.deleteOne();
             res.json({ message: 'Hub removed' });
         } else {
             res.status(404).json({ message: 'Hub not found' });
