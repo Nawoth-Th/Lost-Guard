@@ -192,6 +192,7 @@ const AdminDashboardScreen = ({ navigation }) => {
     };
 
     const handleDeleteUserItem = async (itemId) => {
+        console.log(`[Admin Dashboard] Requesting deletion of item: ${itemId}`);
         Alert.alert(
             "Confirm Delete",
             "Are you sure you want to delete this listing permanently?",
@@ -199,12 +200,13 @@ const AdminDashboardScreen = ({ navigation }) => {
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: async () => {
                     try {
-                        await api.delete(`/items/${itemId}`);
+                        const { data } = await api.delete(`/items/${itemId}`);
                         setSelectedUserItems(prev => prev.filter(i => i._id !== itemId));
-                        Alert.alert('Deleted', 'Listing has been removed from the system.');
+                        Alert.alert('Deleted', data.message || 'Listing has been removed.');
                     } catch (error) {
-                        console.error('Delete Item Error:', error.response?.data?.message || error.message);
-                        Alert.alert('Error', 'Failed to delete listing.');
+                        const errorMsg = error.response?.data?.message || error.message;
+                        console.error('[Admin Dashboard] Delete Item Error:', errorMsg);
+                        Alert.alert('Error', `Failed to delete listing: ${errorMsg}`);
                     }
                 }}
             ]

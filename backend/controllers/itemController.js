@@ -204,27 +204,31 @@ const updateItemStatus = async (req, res) => {
 // @access  Private
 const deleteItem = async (req, res) => {
     try {
+        console.log(`[Item Deletion] Attempting to delete item: ${req.params.id} by user: ${req.user._id} (Admin: ${req.user.isAdmin})`);
         const item = await Item.findById(req.params.id);
 
-        if (item) {
-            // Verify ownership or Admin rights
-            if (item.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-                return res.status(401).json({ message: 'Not authorized - Ownership mismatch' });
-            }
-
-            // Remove associated StatusLogs
-            await StatusLog.deleteMany({ item: item._id });
-            // Remove associated Claims
-            await Claim.deleteMany({ item: item._id });
-
-            await item.deleteOne();
-            res.json({ message: 'Item and associated records successfully removed' });
-        } else {
-            res.status(404).json({ message: 'Item not found' });
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
         }
+
+        // Verify ownership or Admin rights
+        if (item.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+            console.warn(`[Item Deletion] Unauthorized attempt by user ${req.user._id} for item ${item._id}`);
+            return res.status(401).json({ message: 'Not authorized - You do not own this item and are not an admin.' });
+        }
+
+        // Remove associated records first
+        await StatusLog.deleteMany({ item: item._id });
+        await Claim.deleteMany({ item: item._id });
+
+        // Direct deletion
+        await Item.findByIdAndDelete(item._id);
+        
+        console.log(`[Item Deletion] Successfully deleted item: ${item._id}`);
+        res.json({ message: 'Item and history successfully removed.' });
     } catch (error) {
-        console.error('Delete Item Error:', error.message);
-        res.status(500).json({ message: error.message || 'Server Error' });
+        console.error('[Item Deletion Error]:', error.message);
+        res.status(500).json({ message: `Deletion failed: ${error.message}` });
     }
 };
 
