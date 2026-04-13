@@ -7,6 +7,7 @@ import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 import { getImageUrl } from '../utils/imageHelper';
 
 const HomeScreen = ({ navigation }) => {
@@ -43,7 +44,7 @@ const HomeScreen = ({ navigation }) => {
             setItems(data);
         } catch (error) {
             console.error('Fetch Items Error:', error.response?.data?.message || error.message);
-            Alert.alert('Error', 'Could not fetch items.');
+            showGlassAlert('Error', 'Could not fetch items.', [], { type: 'error' });
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -102,13 +103,14 @@ const HomeScreen = ({ navigation }) => {
     );
 
     const handleLogout = () => {
-        Alert.alert(
+        showGlassAlert(
             "Logout",
             "Are you sure you want to log out?",
             [
                 { text: "Cancel", style: "cancel" },
                 { text: "Logout", onPress: logout, style: "destructive" }
-            ]
+            ],
+            { type: 'warning' }
         );
     };
 

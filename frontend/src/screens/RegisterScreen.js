@@ -6,6 +6,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
+import { showGlassAlert } from '../utils/alertHelper';
 
 const RegisterScreen = ({ navigation }) => {
     const [name, setName] = useState('');
@@ -19,12 +20,12 @@ const RegisterScreen = ({ navigation }) => {
 
     const handleRegister = async () => {
         if (!name || !email || !password || !confirmPassword) {
-            Alert.alert('Error', 'Please fill in all fields');
+            showGlassAlert('Error', 'Please fill in all fields', [], { type: 'error' });
             return;
         }
 
         if (password !== confirmPassword) {
-            Alert.alert('Error', 'Passwords do not match');
+            showGlassAlert('Error', 'Passwords do not match', [], { type: 'error' });
             return;
         }
 
@@ -33,7 +34,7 @@ const RegisterScreen = ({ navigation }) => {
             await register(name, email, password);
             // AuthContext update handles screen navigation
         } catch (error) {
-            Alert.alert('Registration Failed', error.response?.data?.message || 'Something went wrong');
+            showGlassAlert('Registration Failed', error.response?.data?.message || 'Something went wrong', [], { type: 'error' });
         } finally {
             setLoading(false);
         }

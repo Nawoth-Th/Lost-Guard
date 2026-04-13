@@ -8,6 +8,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 import { getStorageItemAsync } from '../utils/storage';
 
 const ClaimScreen = ({ route, navigation }) => {
@@ -20,7 +21,7 @@ const ClaimScreen = ({ route, navigation }) => {
     const pickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Camera roll permissions are required.');
+            showGlassAlert('Permission Denied', 'Camera roll permissions are required.', [], { type: 'error' });
             return;
         }
 
@@ -37,7 +38,7 @@ const ClaimScreen = ({ route, navigation }) => {
 
     const handleSubmit = async () => {
         if (!message) {
-            Alert.alert('Error', 'Please provide a message with details to prove ownership.');
+            showGlassAlert('Error', 'Please provide a message with details to prove ownership.', [], { type: 'error' });
             return;
         }
 
@@ -91,12 +92,15 @@ const ClaimScreen = ({ route, navigation }) => {
                 verificationAnswer,
             });
 
-            Alert.alert('Success', 'Thank you for your claim request! It has been submitted successfully. The owner will review your request.', [
-                { text: 'OK', onPress: () => navigation.navigate('Home') }
-            ]);
+            showGlassAlert(
+                'Claim Request Sent!', 
+                'Thank you for providing the details. Your request has been submitted to the owner for verification. We\'ll notify you as soon as there\'s an update. Good luck!', 
+                [{ text: 'OK', onPress: () => navigation.navigate('Home') }],
+                { type: 'success' }
+            );
         } catch (error) {
             console.error('Claim Error:', error.response?.data?.message || error.message);
-            Alert.alert('Error', error.response?.data?.message || 'Failed to submit claim');
+            showGlassAlert('Error', error.response?.data?.message || 'Failed to submit claim', [], { type: 'error' });
         } finally {
             setLoading(false);
         }

@@ -8,6 +8,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 
 const AdminDashboardScreen = ({ navigation }) => {
     const [activeTab, setActiveTab] = useState('Claims');
@@ -57,7 +58,7 @@ const AdminDashboardScreen = ({ navigation }) => {
             }
         } catch (error) {
             console.error(`Fetch ${activeTab} Error:`, error.message);
-            Alert.alert('Error', `Failed to load ${activeTab}.`);
+            showGlassAlert('Error', `Failed to load ${activeTab}.`, [], { type: 'error' });
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -94,10 +95,10 @@ const AdminDashboardScreen = ({ navigation }) => {
     const handleUpdateStatus = async (id, status) => {
         try {
             await api.put(`/claims/${id}`, { status });
-            Alert.alert('Success', `Claim ${status} successfully.`);
+            showGlassAlert('Success', `Claim ${status} successfully.`, [], { type: 'success' });
             fetchData();
         } catch (error) {
-            Alert.alert('Error', 'Failed to update claim status.');
+            showGlassAlert('Error', 'Failed to update claim status.', [], { type: 'error' });
         }
     };
 
@@ -128,14 +129,14 @@ const AdminDashboardScreen = ({ navigation }) => {
             setFBlock('');
             setFLoc('');
             fetchData();
-            Alert.alert('Success', `${modalType} saved successfully.`);
+            showGlassAlert('Success', `${modalType} saved successfully.`, [], { type: 'success' });
         } catch (error) {
-            Alert.alert('Error', error.response?.data?.message || 'Failed to save.');
+            showGlassAlert('Error', error.response?.data?.message || 'Failed to save.', [], { type: 'error' });
         }
     };
 
     const handleDeleteMetadata = async (id, type) => {
-        Alert.alert(
+        showGlassAlert(
             "Confirm Delete",
             `Are you sure you want to remove this ${type}?`,
             [
@@ -145,16 +146,18 @@ const AdminDashboardScreen = ({ navigation }) => {
                         const endpoint = type === 'category' ? `/categories/${id}` : type === 'location' ? `/locations/${id}` : `/hubs/${id}`;
                         await api.delete(endpoint);
                         fetchData();
+                        showGlassAlert('Success', `${type} removed.`, [], { type: 'success' });
                     } catch (error) {
-                        Alert.alert('Error', 'Failed to delete.');
+                        showGlassAlert('Error', 'Failed to delete.', [], { type: 'error' });
                     }
                 }}
-            ]
+            ],
+            { type: 'warning' }
         );
     };
 
     const handleDeleteUser = async (id) => {
-        Alert.alert(
+        showGlassAlert(
             "Confirm Delete",
             "Are you sure you want to delete this user and all their listings? This action is irreversible.",
             [
@@ -163,11 +166,13 @@ const AdminDashboardScreen = ({ navigation }) => {
                     try {
                         await api.delete(`/users/${id}`);
                         fetchData();
+                        showGlassAlert('Success', 'User deleted.', [], { type: 'success' });
                     } catch (error) {
-                        Alert.alert('Error', 'Failed to delete user.');
+                        showGlassAlert('Error', 'Failed to delete user.', [], { type: 'error' });
                     }
                 }}
-            ]
+            ],
+            { type: 'warning' }
         );
     };
 
@@ -176,9 +181,9 @@ const AdminDashboardScreen = ({ navigation }) => {
             await api.put(`/users/${editItem._id}`, editUserForm);
             setShowUserEditModal(false);
             fetchData();
-            Alert.alert('Success', 'User updated successfully.');
+            showGlassAlert('Success', 'User updated successfully.', [], { type: 'success' });
         } catch (error) {
-            Alert.alert('Error', 'Failed to update user.');
+            showGlassAlert('Error', 'Failed to update user.', [], { type: 'error' });
         }
     };
 
@@ -197,7 +202,7 @@ const AdminDashboardScreen = ({ navigation }) => {
 
     const handleDeleteUserItem = async (itemId) => {
         console.log(`[Admin Dashboard] Requesting deletion of item: ${itemId}`);
-        Alert.alert(
+        showGlassAlert(
             "Confirm Delete",
             "Are you sure you want to delete this listing permanently?",
             [
@@ -206,14 +211,15 @@ const AdminDashboardScreen = ({ navigation }) => {
                     try {
                         const { data } = await api.delete(`/items/${itemId}`);
                         setSelectedUserItems(prev => prev.filter(i => i._id !== itemId));
-                        Alert.alert('Deleted', data.message || 'Listing has been removed.');
+                        showGlassAlert('Deleted', data.message || 'Listing has been removed.', [], { type: 'success' });
                     } catch (error) {
                         const errorMsg = error.response?.data?.message || error.message;
                         console.error('[Admin Dashboard] Delete Item Error:', errorMsg);
-                        Alert.alert('Error', `Failed to delete listing: ${errorMsg}`);
+                        showGlassAlert('Error', `Failed to delete listing: ${errorMsg}`, [], { type: 'error' });
                     }
                 }}
-            ]
+            ],
+            { type: 'warning' }
         );
     };
 

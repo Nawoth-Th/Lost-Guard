@@ -6,6 +6,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
+import { showGlassAlert } from '../utils/alertHelper';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ const LoginScreen = ({ navigation }) => {
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert('Error', 'Please fill in all fields');
+            showGlassAlert('Error', 'Please fill in all fields', [], { type: 'error' });
             return;
         }
 
@@ -26,7 +27,7 @@ const LoginScreen = ({ navigation }) => {
             await login(email, password);
             // AuthContext update handles screen navigation
         } catch (error) {
-            Alert.alert('Login Failed', error.response?.data?.message || 'Something went wrong');
+            showGlassAlert('Login Failed', error.response?.data?.message || 'Something went wrong', [], { type: 'error' });
         } finally {
             setLoading(false);
         }

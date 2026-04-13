@@ -6,6 +6,7 @@ import { ChevronLeft, MapPin, Clock, Archive as ArchiveIcon } from 'lucide-react
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 import { getImageUrl } from '../utils/imageHelper';
 
 const ArchivesScreen = ({ navigation }) => {
@@ -19,7 +20,7 @@ const ArchivesScreen = ({ navigation }) => {
             setItems(data);
         } catch (error) {
             console.error('Fetch Archives Error:', error.message);
-            Alert.alert('Error', 'Failed to load your archives.');
+            showGlassAlert('Error', 'Failed to load your archives.', [], { type: 'error' });
         } finally {
             setLoading(false);
             setRefreshing(false);

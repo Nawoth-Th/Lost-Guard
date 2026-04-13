@@ -7,6 +7,7 @@ import { ChevronLeft, MapPin, Clock, Share2, MessageCircle, CheckCircle2, Histor
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 import { AuthContext } from '../context/AuthContext';
 import { getImageUrl } from '../utils/imageHelper';
 
@@ -34,7 +35,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             fetchClaimStatus();
         } catch (error) {
             console.error('Fetch Item Error:', error.response?.data?.message || error.message);
-            Alert.alert('Error', 'Could not load item details.');
+            showGlassAlert('Error', 'Could not load item details.', [], { type: 'error' });
             navigation.goBack();
         } finally {
             setLoading(false);
@@ -145,15 +146,15 @@ const ItemDetailScreen = ({ route, navigation }) => {
             });
             setItem(data);
             fetchStatusLogs();
-            Alert.alert('Success', `Item status updated to ${!item.isAtHub ? 'Secured at Hub' : 'In Circulation'}`);
+            showGlassAlert('Success', `Item status updated to ${!item.isAtHub ? 'Secured at Hub' : 'In Circulation'}`, [], { type: 'success' });
         } catch (error) {
             console.error('Update Hub Error:', error.response?.data?.message || error.message);
-            Alert.alert('Error', 'Failed to update hub status.');
+            showGlassAlert('Error', 'Failed to update hub status.', [], { type: 'error' });
         }
     };
 
     const handleArchive = () => {
-        Alert.alert(
+        showGlassAlert(
             "Item Found",
             "Are you sure you want to mark this item as found? It will be archived.",
             [
@@ -165,14 +166,15 @@ const ItemDetailScreen = ({ route, navigation }) => {
                             const { data } = await api.put(`/items/${id}/status`, { status: 'Recovered' });
                             setItem(data);
                             fetchStatusLogs();
-                            Alert.alert('Success', 'Item archived successfully!');
+                            showGlassAlert('Success', 'Item archived successfully!', [], { type: 'success' });
                         } catch (error) {
                             console.error('Archive Error:', error.response?.data?.message || error.message);
-                            Alert.alert('Error', 'Failed to archive item.');
+                            showGlassAlert('Error', 'Failed to archive item.', [], { type: 'error' });
                         }
                     }
                 }
-            ]
+            ],
+            { type: 'warning' }
         );
     };
 
@@ -181,23 +183,25 @@ const ItemDetailScreen = ({ route, navigation }) => {
             if (availableHubs.length > 0) {
                 setShowHubModal(true);
             } else {
-                Alert.alert(
+                showGlassAlert(
                     "Verify Drop-off",
                     "Is this item secured at the University Security Gate? (No other hubs defined)",
                     [
                         { text: "Cancel", style: "cancel" },
                         { text: "Confirm", onPress: () => toggleHubStatus('Main Security Gate (NAB)') }
-                    ]
+                    ],
+                    { type: 'info' }
                 );
             }
         } else {
-            Alert.alert(
+            showGlassAlert(
                 "Release Item",
                 "Are you sure you want to release this item from the hub?",
                 [
                     { text: "Cancel", style: "cancel" },
                     { text: "Release", onPress: () => toggleHubStatus(), style: 'destructive' }
-                ]
+                ],
+                { type: 'warning' }
             );
         }
     };

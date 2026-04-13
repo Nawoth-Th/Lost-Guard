@@ -23,6 +23,7 @@ import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import ArchivesScreen from './src/screens/ArchivesScreen';
+import GlobalAlert from './src/components/GlobalAlert';
 
 // Components
 import FloatingHeader from './src/components/FloatingHeader';
@@ -132,6 +133,7 @@ function AppContent({ currentRoute }) {
                 />
             )}
             {showMenu && <FloatingBottomMenu />}
+            <GlobalAlert />
         </View>
     );
 }

@@ -6,6 +6,7 @@ import { ChevronLeft, ClipboardList, Clock, CheckCircle2, XCircle, MapPin, Packa
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 
 const MyClaimsScreen = ({ navigation }) => {
     const [claims, setClaims] = useState([]);
@@ -18,7 +19,7 @@ const MyClaimsScreen = ({ navigation }) => {
             setClaims(data);
         } catch (error) {
             console.error('Fetch My Claims Error:', error.message);
-            Alert.alert('Error', 'Failed to load your claims.');
+            showGlassAlert('Error', 'Failed to load your claims.', [], { type: 'error' });
         } finally {
             setLoading(false);
             setRefreshing(false);

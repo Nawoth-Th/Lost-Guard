@@ -6,6 +6,7 @@ import { ChevronLeft, Trash2, MapPin, Clock, Package, CheckCircle } from 'lucide
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 import { getImageUrl } from '../utils/imageHelper';
 
 const MyItemsScreen = ({ navigation }) => {
@@ -19,7 +20,7 @@ const MyItemsScreen = ({ navigation }) => {
             setItems(data);
         } catch (error) {
             console.error('Fetch My Items Error:', error.message);
-            Alert.alert('Error', 'Failed to load your reports.');
+            showGlassAlert('Error', 'Failed to load your reports.', [], { type: 'error' });
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -36,7 +37,7 @@ const MyItemsScreen = ({ navigation }) => {
     }, []);
 
     const handleDelete = (id) => {
-        Alert.alert(
+        showGlassAlert(
             "Delete Report",
             "Are you sure you want to remove this report? This action cannot be undone.",
             [
@@ -47,18 +48,20 @@ const MyItemsScreen = ({ navigation }) => {
                         try {
                             await api.delete(`/items/${id}`);
                             setItems(prev => prev.filter(item => item._id !== id));
+                            showGlassAlert('Success', 'Report deleted.', [], { type: 'success' });
                         } catch (error) {
-                            Alert.alert('Error', 'Failed to delete item.');
+                            showGlassAlert('Error', 'Failed to delete item.', [], { type: 'error' });
                         }
                     }, 
                     style: "destructive" 
                 }
-            ]
+            ],
+            { type: 'warning' }
         );
     };
 
     const handleMarkAsFound = (id) => {
-        Alert.alert(
+        showGlassAlert(
             "Mark as Found",
             "Are you sure you want to mark this item as found? It will appear in your Archives after 1 hour.",
             [
@@ -69,13 +72,14 @@ const MyItemsScreen = ({ navigation }) => {
                         try {
                             await api.put(`/items/${id}/status`, { status: 'Recovered' });
                             setItems(prev => prev.map(item => item._id === id ? { ...item, status: 'Recovered', updatedAt: new Date().toISOString() } : item));
-                            Alert.alert('Success', 'Item marked as Found.');
+                            showGlassAlert('Success', 'Item marked as Found.', [], { type: 'success' });
                         } catch (error) {
-                            Alert.alert('Error', 'Failed to update item status.');
+                            showGlassAlert('Error', 'Failed to update item status.', [], { type: 'error' });
                         }
                     }
                 }
-            ]
+            ],
+            { type: 'info' }
         );
     };
 

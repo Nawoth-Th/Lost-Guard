@@ -6,18 +6,20 @@ import { ChevronLeft, User, Package, ClipboardList, ShieldCheck, LogOut, Setting
 import GlassCard from '../components/GlassCard';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
+import { showGlassAlert } from '../utils/alertHelper';
 
 const ProfileScreen = ({ navigation }) => {
     const { userInfo, logout } = useContext(AuthContext);
 
     const handleLogout = () => {
-        Alert.alert(
+        showGlassAlert(
             "Logout",
             "Are you sure you want to logout?",
             [
                 { text: "Cancel", style: "cancel" },
                 { text: "Logout", onPress: logout, style: "destructive" }
-            ]
+            ],
+            { type: 'warning' }
         );
     };
 

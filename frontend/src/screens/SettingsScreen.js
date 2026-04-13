@@ -7,6 +7,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import { AuthContext } from '../context/AuthContext';
+import { showGlassAlert } from '../utils/alertHelper';
 
 const SettingsScreen = ({ navigation }) => {
     const { userInfo, updateProfile } = useContext(AuthContext);
@@ -22,7 +23,7 @@ const SettingsScreen = ({ navigation }) => {
 
     const handleSaveProfile = async () => {
         if (!name.trim() || !email.trim()) {
-            Alert.alert('Error', 'Name and Email are required.');
+            showGlassAlert('Error', 'Name and Email are required.', [], { type: 'error' });
             return;
         }
 
@@ -30,11 +31,11 @@ const SettingsScreen = ({ navigation }) => {
 
         if (newPassword) {
             if (newPassword.length < 6) {
-                Alert.alert('Error', 'Password must be at least 6 characters.');
+                showGlassAlert('Error', 'Password must be at least 6 characters.', [], { type: 'error' });
                 return;
             }
             if (newPassword !== confirmPassword) {
-                Alert.alert('Error', 'New passwords do not match.');
+                showGlassAlert('Error', 'New passwords do not match.', [], { type: 'error' });
                 return;
             }
             profileData.password = newPassword;
@@ -43,12 +44,12 @@ const SettingsScreen = ({ navigation }) => {
         try {
             setLoading(true);
             await updateProfile(profileData);
-            Alert.alert('Success ✅', 'Your profile has been updated!');
+            showGlassAlert('Success ✅', 'Your profile has been updated!', [], { type: 'success' });
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (error) {
-            Alert.alert('Error', error.response?.data?.message || 'Failed to update profile.');
+            showGlassAlert('Error', error.response?.data?.message || 'Failed to update profile.', [], { type: 'error' });
         } finally {
             setLoading(false);
         }

@@ -8,6 +8,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import Theme from '../constants/Theme';
 import api from '../api/api';
+import { showGlassAlert } from '../utils/alertHelper';
 import { getStorageItemAsync } from '../utils/storage';
 
 const ReportItemScreen = ({ navigation }) => {
@@ -55,7 +56,7 @@ const ReportItemScreen = ({ navigation }) => {
     const pickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!');
+            showGlassAlert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!', [], { type: 'error' });
             return;
         }
 
@@ -72,7 +73,7 @@ const ReportItemScreen = ({ navigation }) => {
 
     const handleSubmit = async () => {
         if (!title || !description || !category || !location) {
-            Alert.alert('Error', 'Please fill in all required fields');
+            showGlassAlert('Error', 'Please fill in all required fields', [], { type: 'error' });
             return;
         }
 
@@ -120,7 +121,7 @@ const ReportItemScreen = ({ navigation }) => {
             }
 
             if (type === 'Found' && (!verificationQuestion || !verificationAnswer)) {
-                Alert.alert('Error', 'Please provide a security question and answer for found items');
+                showGlassAlert('Error', 'Please provide a security question and answer for found items', [], { type: 'error' });
                 setLoading(false);
                 return;
             }
@@ -140,12 +141,15 @@ const ReportItemScreen = ({ navigation }) => {
 
             await api.post('/items', itemData);
             
-            Alert.alert('Success', 'Thank you for your report! It has been submitted successfully.', [
-                { text: 'OK', onPress: () => navigation.navigate('Home') }
-            ]);
+            showGlassAlert(
+                'Thank you!', 
+                'Your report has been successfully submitted. Helping others find their lost items is what makes our community great!', 
+                [{ text: 'OK', onPress: () => navigation.navigate('Home') }],
+                { type: 'success' }
+            );
         } catch (error) {
             console.error('Report Error:', error.response?.data?.message || error.message);
-            Alert.alert('Error', error.response?.data?.message || 'Failed to submit report');
+            showGlassAlert('Error', error.response?.data?.message || 'Failed to submit report', [], { type: 'error' });
         } finally {
             setLoading(false);
         }
