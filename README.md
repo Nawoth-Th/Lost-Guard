@@ -14,7 +14,7 @@
 
 ---
 
-## 🌟 Advanced University Features
+## 🌟 Advanced University Specific Features
 
 ### 🧠 Smart Campus Matching Engine
 
