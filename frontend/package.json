@@ -47,5 +47,10 @@
     "status": "^0.0.13",
     "wait": "^0.4.2"
   },
-  "private": true
+  "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "dbus"
+    ]
+  }
 }
