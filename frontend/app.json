@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/app-config.json",
   "expo": {
     "name": "Lost Guard",
     "slug": "lost-guard",
