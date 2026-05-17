@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "version": "1.0.0",
+  "packageManager": "pnpm@9.12.3",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
